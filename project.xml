@@ -1,0 +1,21 @@
+<project
+    name = "uptime"
+    description = "Compute Data Center uptime"
+    prefix = "upt"
+    script = "zproject.gsl"
+    repository = "https://stash.mbt.lab.etn.com/BIOS/uptime">
+
+    <include filename = "license.xml" />
+    <use project = "czmq" />
+    <use project = "malamute" />
+    <use project = "libbiosproto" libname = "biosproto" prefix="biosproto"
+        min_major = "0" min_minor = "0" min_patch = "0"
+        repository = "https://stash.mbt.lab.etn.com/BIOS/libbiosproto"
+        test = "bios_proto_test">
+        <use project = "malamute"/>
+    </use>
+
+    <class name = "dc" private="1">DC information</class>
+    <class name = "upt" private="1">DC uptime</class>
+    <class name = "upt_server" >Actor computing uptime</class>
+</project>

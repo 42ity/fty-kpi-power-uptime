@@ -1,0 +1,68 @@
+#
+#    uptime - Compute Data Center uptime
+#
+#    Copyright (C) 2014 - 2015 Eaton                                        
+#                                                                           
+#    This program is free software; you can redistribute it and/or modify   
+#    it under the terms of the GNU General Public License as published by   
+#    the Free Software Foundation; either version 2 of the License, or      
+#    (at your option) any later version.                                    
+#                                                                           
+#    This program is distributed in the hope that it will be useful,        
+#    but WITHOUT ANY WARRANTY; without even the implied warranty of         
+#    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the          
+#    GNU General Public License for more details.                           
+#                                                                           
+#    You should have received a copy of the GNU General Public License along
+#    with this program; if not, write to the Free Software Foundation, Inc.,
+#    51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.            
+
+Source:         uptime
+Section:        net
+Priority:       optional
+Maintainer:     John Doe <John.Doe@example.com>
+Uploaders:      John Doe <John.Doe@example.com>
+Standards-Version: 3.9.5
+Build-Depends: bison, debhelper (>= 8),
+    pkg-config,
+    automake,
+    autoconf,
+    libtool,
+    libsodium-dev,
+    libzmq4-dev,
+    libczmq-dev,
+    libmlm-dev,
+    libbiosproto-dev,
+    dh-autoreconf,
+    systemd
+
+Package: libupt0
+Architecture: any
+Depends: ${shlibs:Depends}, ${misc:Depends}
+Description: uptime
+ This package contains shared library for uptime: compute data center uptime
+
+Package: uptime-dev
+Architecture: all
+Section: libdevel
+Depends:
+    libsodium-dev,
+    libzmq4-dev,
+    libczmq-dev,
+    libmlm-dev,
+    libbiosproto-dev,
+    libupt0 (= ${binary:Version})
+Description: development files for uptime
+ This package contains development files for uptime: compute data center uptime
+
+
+Package: uptime-dbg
+Architecture: any
+Section: debug
+Priority: extra
+Depends:
+    libupt0 (= ${binary:Version}),
+    ${misc:Depends}
+Description: debugging symbols for uptime
+ This package contains the debugging symbols for uptime : compute data center uptime.
+

@@ -447,15 +447,15 @@ AM_CONDITIONAL(ON_ANDROID, test "x$uptime_on_android" = "xyes")
 AM_CONDITIONAL(INSTALL_MAN, test "x$uptime_install_man" = "xyes")
 AM_CONDITIONAL(BUILD_DOC, test "x$uptime_build_doc" = "xyes")
 
-# Check for uptime intent
-AC_ARG_WITH([uptime],
-    AS_HELP_STRING([--with-uptime],
-        [Compile and install the uptime program [default=yes].]),
-    [with_uptime=$withval],
-    [with_uptime=yes])
+# Check for kpi-uptime intent
+AC_ARG_WITH([kpi-uptime],
+    AS_HELP_STRING([--with-kpi-uptime],
+        [Compile and install the kpi-uptime program [default=yes].]),
+    [with_kpi_uptime=$withval],
+    [with_kpi_uptime=yes])
 
-AM_CONDITIONAL([WITH_UPTIME], [test x$with_uptime != xno])
-AM_COND_IF([WITH_UPTIME], [AC_MSG_NOTICE([WITH_UPTIME defined])])
+AM_CONDITIONAL([WITH_KPI_UPTIME], [test x$with_kpi_uptime != xno])
+AM_COND_IF([WITH_KPI_UPTIME], [AC_MSG_NOTICE([WITH_KPI_UPTIME defined])])
 
 # Check for upt_selftest intent
 AC_ARG_WITH([upt_selftest],
@@ -501,8 +501,8 @@ AC_CONFIG_FILES([Makefile
 
 AM_COND_IF([WITH_SYSTEMD],
     [AC_CONFIG_FILES([
-                 src/uptime.service
-                 src/uptime.conf
+                 src/kpi-uptime.service
+                 src/kpi-uptime.conf
     ])],
     [])
 

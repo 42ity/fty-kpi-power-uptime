@@ -62,8 +62,12 @@ upt_new ()
     self->last_update = zclock_mono() / 1000;
 
     self->dc = zhashx_new ();
+    zhashx_set_key_duplicator (self->dc, s_str_duplicator);
+    zhashx_set_key_destructor (self->dc, s_str_destructor);
     zhashx_set_destructor (self->dc, s_dc_destructor);
     self->ups2dc = zhashx_new ();
+    zhashx_set_key_duplicator (self->dc, s_str_duplicator);
+    zhashx_set_key_destructor (self->dc, s_str_destructor);
     zhashx_set_duplicator (self->ups2dc, s_str_duplicator);
     zhashx_set_destructor (self->ups2dc, s_str_destructor);
     return self;
@@ -77,8 +81,8 @@ upt_destroy (upt_t **self_p)
 
     upt_t *self = *self_p;
 
-    zhashx_destroy (&self->ups2dc);
     zhashx_destroy (&self->dc);
+    zhashx_destroy (&self->ups2dc);
     free (self);
 
     *self_p = NULL;
@@ -93,7 +97,7 @@ upt_add(upt_t *self, const char *dc_name, zlistx_t *ups)
     dc_t *dc = (dc_t*) zhashx_lookup (self->dc, dc_name);
     if (!dc) {
         dc = dc_new ();
-        zhashx_insert (self->dc, strdup(dc_name), dc);
+        zhashx_insert (self->dc, dc_name, dc);
     }
     else {
         // dc exists, so
@@ -111,6 +115,7 @@ upt_add(upt_t *self, const char *dc_name, zlistx_t *ups)
                 dc_set_online (dc, ups_name);
             }
         }
+        zlistx_destroy (&keys);
     }
 
     if (ups) {

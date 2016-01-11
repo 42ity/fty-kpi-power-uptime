@@ -70,6 +70,12 @@ UPT_EXPORT void
 }
 
 static void
+s_str_destructor (void **x)
+{
+    zstr_free ((char**) x);
+}
+
+static void
 s_handle_set (upt_server_t *server, mlm_client_t *client, zmsg_t *msg)
 {
     char *dc_name = zmsg_popstr (msg);
@@ -79,6 +85,7 @@ s_handle_set (upt_server_t *server, mlm_client_t *client, zmsg_t *msg)
     }
 
     zlistx_t *ups = zlistx_new ();
+    zlistx_set_destructor (ups, s_str_destructor);
     char *ups_name;
     while ((ups_name = zmsg_popstr (msg)) != NULL) {
         zlistx_add_end (ups, ups_name);
@@ -139,6 +146,7 @@ s_handle_uptime (upt_server_t *server, mlm_client_t *client, zmsg_t *msg)
         s_offline,
         NULL);
 
+    zstr_free (&dc_name);
     zstr_free (&s_total);
     zstr_free (&s_offline);
 }
@@ -214,6 +222,7 @@ void upt_server (zsock_t *pipe, void *args)
                 zstr_free (&stream);
                 zstr_free (&pattern);
             }
+            zstr_free (&cmd);
             zmsg_destroy (&msg);
             continue;
         }   // which == pipe
@@ -240,6 +249,7 @@ void upt_server (zsock_t *pipe, void *args)
             if (streq (command, "UPTIME")) {
                 s_handle_uptime (server, client, msg);
             }
+            zstr_free (&command);
         }
         else
         if (streq (mlm_client_command (client), "STREAM DELIVER"))

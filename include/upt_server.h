@@ -28,23 +28,27 @@ extern "C" {
 
 
 //  @interface
-//  Create a new upt_server
-UPT_EXPORT upt_server_t *
-    upt_server_new (void);
-
-//  Destroy the upt_server
-UPT_EXPORT void
-    upt_server_destroy (upt_server_t **self_p);
-
-//  Set server verbose
-UPT_EXPORT void
-    upt_server_verbose (upt_server_t *self);
-
-//  Print properties of object
-UPT_EXPORT void
-    upt_server_print (upt_server_t *self);
-
-//  Uptime server as an actor
+//  Create new kpi-uptime instance.
+//
+//      zactor_t *server = zactor_new (upt_server, "uptime");
+//
+//  Destroy the instance
+//      zsock_destroy (&server);
+//
+//  All upt_server commands are synchronous, so must be followed by zsock_wait
+//
+//  Set verbose mode
+//      zsock_send (server, "VERBOSE");
+//      zsock_wait (server);
+//
+//  Connect to malamute endpoint (it'll interally subscribe on METRIC stream and ups.status.* messages)
+//      zsock_sendx (server, "CONNECT", "ipc://@/malamute", NULL);
+//      zsock_wait (server);
+//
+//  Setup directory for storing the state
+//      zsock_sendx (server, "CONFIG", "src/", NULL);
+//      zsock_wait (server);
+//
 void upt_server (zsock_t *pipe, void *args);
 
 //  Self test of this class

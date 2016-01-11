@@ -43,19 +43,19 @@ endif
 
 src_libupt_la_LIBADD = ${project_libs}
 
-if WITH_UPTIME
-bin_PROGRAMS += src/uptime
-src_uptime_CPPFLAGS = ${AM_CPPFLAGS}
-src_uptime_LDADD = ${program_libs}
-src_uptime_SOURCES = src/uptime.c
+if WITH_KPI_UPTIME
+bin_PROGRAMS += src/kpi-uptime
+src_kpi_uptime_CPPFLAGS = ${AM_CPPFLAGS}
+src_kpi_uptime_LDADD = ${program_libs}
+src_kpi_uptime_SOURCES = src/kpi-uptime.c
 if WITH_SYSTEMD
-src_uptime_servicedir = @prefix@/lib/systemd/system
-src_uptime_service_DATA = src/uptime.service
-src_uptime_systemd_tmpfilesdir = /usr/lib/tmpfiles.d
-src_uptime_systemd_tmpfiles_DATA = src/uptime.conf
+src_kpi_uptime_servicedir = @prefix@/lib/systemd/system
+src_kpi_uptime_service_DATA = src/kpi-uptime.service
+src_kpi_uptime_systemd_tmpfilesdir = /usr/lib/tmpfiles.d
+src_kpi_uptime_systemd_tmpfiles_DATA = src/kpi-uptime.conf
 endif #WITH_SYSTEMD
 
-endif #WITH_UPTIME
+endif #WITH_KPI_UPTIME
 if WITH_UPT_SELFTEST
 check_PROGRAMS += src/upt_selftest
 noinst_PROGRAMS += src/upt_selftest
@@ -63,8 +63,8 @@ src_upt_selftest_CPPFLAGS = ${AM_CPPFLAGS}
 src_upt_selftest_LDADD = ${program_libs}
 src_upt_selftest_SOURCES = src/upt_selftest.c
 if WITH_SYSTEMD
-src_uptime_systemd_tmpfilesdir = /usr/lib/tmpfiles.d
-src_uptime_systemd_tmpfiles_DATA = src/uptime.conf
+src_kpi_uptime_systemd_tmpfilesdir = /usr/lib/tmpfiles.d
+src_kpi_uptime_systemd_tmpfiles_DATA = src/kpi-uptime.conf
 endif #WITH_SYSTEMD
 
 endif #WITH_UPT_SELFTEST
@@ -72,7 +72,7 @@ endif #WITH_UPT_SELFTEST
 
 # define custom target for all products of /src
 src:
-	src/uptime \
+	src/kpi-uptime \
 	src/upt_selftest \
 	src/libupt.la
 

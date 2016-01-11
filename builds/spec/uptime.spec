@@ -95,11 +95,11 @@ find %{buildroot} -name '*.la' | xargs rm -f
 %files
 %defattr(-,root,root)
 %doc COPYING
-%{_bindir}/uptime
-%{_prefix}/lib/systemd/system/uptime*.service
+%{_bindir}/kpi-uptime
+%{_prefix}/lib/systemd/system/kpi-uptime*.service
 
 #file for type systemd-tmpfiles
 %dir /usr/lib/tmpfiles.d
-/usr/lib/tmpfiles.d/uptime.conf
+/usr/lib/tmpfiles.d/kpi-uptime.conf
 
 %changelog

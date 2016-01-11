@@ -1,0 +1,11 @@
+[Unit]
+Description=uptime service
+After=network.target malamute.service
+
+[Service]
+Type=simple
+Environment="prefix=@prefix@"
+ExecStart=@prefix@/bin/uptime
+
+[Install]
+WantedBy=bios.target

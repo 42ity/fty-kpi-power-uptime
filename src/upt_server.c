@@ -32,6 +32,7 @@
 struct _upt_server_t {
     bool verbose;
     upt_t *upt;
+    char *dir;
 };
 
 //  Create a new upt_server
@@ -57,6 +58,7 @@ UPT_EXPORT void
 
     upt_server_t *self = *self_p;
     upt_destroy (&self->upt);
+    zstr_free (&self->dir);
     free (self);
     *self_p = NULL;
 }
@@ -67,6 +69,80 @@ UPT_EXPORT void
 {
     assert (self);
     self->verbose = true;
+}
+
+// SET the DIR
+UPT_EXPORT void
+    upt_server_set_dir (upt_server_t *self, const char* dir)
+{
+    assert (self);
+    assert (dir);
+
+    zstr_free (&self->dir);
+    self->dir = strdup (dir);
+}
+
+int
+    upt_server_load_state (upt_server_t *self)
+{
+    assert (self);
+    assert (self->dir);
+
+    char* path;
+    asprintf (&path, "%s/%s", self->dir, "state");
+
+    FILE *fp = fopen (path, "r");
+    zstr_free (&path);
+
+    if (!fp)
+        return -1;
+
+    upt_t *upt = upt_load (fp);
+    fclose (fp);
+
+    if (!upt)
+        return -1;
+
+    upt_destroy (&self->upt);
+    self->upt = upt;
+    return 0;
+}
+
+int
+    upt_server_save_state (upt_server_t *self)
+{
+    assert (self);
+    assert (self->dir);
+
+    char* path;
+    asprintf (&path, "%s/%s", self->dir, "state.new");
+
+    FILE *fp = fopen (path, "w");
+    zstr_free (&path);
+
+    if (!fp)
+        return -1;
+
+    int r = upt_save (self->upt, fp);
+    fflush (fp);
+    fdatasync (fileno (fp));
+    fclose (fp);
+
+    if (r != 0)
+        return -1;
+
+    char* oldpath;
+    char* newpath;
+    asprintf (&oldpath, "%s/%s", self->dir, "state.new");
+    asprintf (&newpath, "%s/%s", self->dir, "state");
+    r = rename (oldpath, newpath);
+    zstr_free (&oldpath);
+    zstr_free (&newpath);
+
+    if (r != 0)
+        return r;
+
+    return 0;
 }
 
 static void
@@ -179,6 +255,7 @@ s_handle_metric (upt_server_t *server, mlm_client_t *client, bios_proto_t *msg)
 //  Server as an actor
 void upt_server (zsock_t *pipe, void *args)
 {
+    int ret;
     char *name = (char*) args;
     mlm_client_t *client = mlm_client_new ();
     upt_server_t *server = upt_server_new ();
@@ -203,6 +280,7 @@ void upt_server (zsock_t *pipe, void *args)
             if (streq (cmd, "VERBOSE")) {
                 upt_server_verbose (server);
                 zmsg_destroy (&msg);
+                zsock_signal (pipe, 0);
             }
             else
             if (streq (cmd, "CONNECT")) {
@@ -211,6 +289,7 @@ void upt_server (zsock_t *pipe, void *args)
                 if (rv == -1)
                     zsys_error ("%s: can't connect to malamute endpoint '%s'", name, endpoint);
                 zstr_free (&endpoint);
+                zsock_signal (pipe, 0);
             }
             else
             if (streq (cmd, "CONSUMER")) {
@@ -221,6 +300,19 @@ void upt_server (zsock_t *pipe, void *args)
                     zsys_error ("%s: can't set consumer on '%s/%s'", stream, pattern);
                 zstr_free (&stream);
                 zstr_free (&pattern);
+                zsock_signal (pipe, 0);
+            }
+            else
+            if (streq (cmd, "CONFIG")) {
+                char* dir = zmsg_popstr (msg);
+                if (!dir)
+                    zsys_error ("%s: CONFIG: directory is empty", name);
+                upt_server_set_dir (server, dir);
+                int r = upt_server_load_state (server);
+                if (!r)
+                    zsys_error ("%s: CONFIG: failed to load %s/state", name, dir);
+                zstr_free (&dir);
+                zsock_signal (pipe, 0);
             }
             zstr_free (&cmd);
             zmsg_destroy (&msg);
@@ -270,8 +362,10 @@ void upt_server (zsock_t *pipe, void *args)
 
         zmsg_destroy (&msg);
     }
-
 exit:
+    ret = upt_server_save_state (server);
+    if (ret != 0)
+        zsys_error ("failed to save state to %s", server->dir);
     zpoller_destroy (&poller);
     mlm_client_destroy (&client);
     upt_server_destroy (&server);
@@ -302,10 +396,18 @@ upt_server_test (bool verbose)
     mlm_client_set_producer (ups, "METRICS");
 
     zactor_t *server = zactor_new (upt_server, (void*) "uptime");
-    if (verbose)
+    if (verbose) {
         zstr_send (server, "VERBOSE");
+        zsock_wait (server);
+    }
+
     zstr_sendx (server, "CONNECT", endpoint, NULL);
+    zsock_wait (server);
     zstr_sendx (server, "CONSUMER", "METRICS", "ups.status.*", NULL);
+    zsock_wait (server);
+    zstr_sendx (server, "CONFIG", "src/", NULL);
+    zsock_wait (server);
+
     zclock_sleep (500);   //THIS IS A HACK TO SETTLE DOWN THINGS
 
     // add some data centers and ups'es

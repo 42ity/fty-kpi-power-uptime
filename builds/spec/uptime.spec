@@ -92,5 +92,14 @@ make install DESTDIR=%{buildroot} %{?_smp_mflags}
 find %{buildroot} -name '*.a' | xargs rm -f
 find %{buildroot} -name '*.la' | xargs rm -f
 
+%files
+%defattr(-,root,root)
+%doc COPYING
+%{_bindir}/uptime
+%{_prefix}/lib/systemd/system/uptime*.service
+
+#file for type systemd-tmpfiles
+%dir /usr/lib/tmpfiles.d
+/usr/lib/tmpfiles.d/uptime.conf
 
 %changelog

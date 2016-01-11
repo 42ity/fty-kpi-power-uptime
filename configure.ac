@@ -309,20 +309,29 @@ uptime_on_android="no"
 # Host specific checks
 AC_CANONICAL_HOST
 
-# Determine whether or not documentation should be built and installed.
-uptime_build_doc="yes"
-uptime_install_man="yes"
+# Allow user to disable doc build
+AC_ARG_WITH([documentation], [AS_HELP_STRING([--without-documentation],
+    [disable documentation build even if asciidoc and xmlto are present [default=no]])])
 
-# Check for asciidoc and xmlto and don't build the docs if these are not installed.
-AC_CHECK_PROG(uptime_have_asciidoc, asciidoc, yes, no)
-AC_CHECK_PROG(uptime_have_xmlto, xmlto, yes, no)
-if test "x$uptime_have_asciidoc" = "xno" -o "x$uptime_have_xmlto" = "xno"; then
+if test "x$with_documentation" = "xno"; then
     uptime_build_doc="no"
-    # Tarballs built with 'make dist' ship with prebuilt documentation.
-    if ! test -f doc/uptime.7; then
-        uptime_install_man="no"
-        AC_MSG_WARN([You are building an unreleased version of UPTIME and asciidoc or xmlto are not installed.])
-        AC_MSG_WARN([Documentation will not be built and manual pages will not be installed.])
+    uptime_install_man="no"
+else
+    # Determine whether or not documentation should be built and installed.
+    uptime_build_doc="yes"
+    uptime_install_man="yes"
+
+    # Check for asciidoc and xmlto and don't build the docs if these are not installed.
+    AC_CHECK_PROG(uptime_have_asciidoc, asciidoc, yes, no)
+    AC_CHECK_PROG(uptime_have_xmlto, xmlto, yes, no)
+    if test "x$uptime_have_asciidoc" = "xno" -o "x$uptime_have_xmlto" = "xno"; then
+        uptime_build_doc="no"
+        # Tarballs built with 'make dist' ship with prebuilt documentation.
+        if ! test -f doc/uptime.7; then
+            uptime_install_man="no"
+            AC_MSG_WARN([You are building an unreleased version of UPTIME and asciidoc or xmlto are not installed.])
+            AC_MSG_WARN([Documentation will not be built and manual pages will not be installed.])
+        fi
     fi
 fi
 AC_MSG_CHECKING([whether to build documentation])
@@ -438,6 +447,16 @@ AM_CONDITIONAL(ON_ANDROID, test "x$uptime_on_android" = "xyes")
 AM_CONDITIONAL(INSTALL_MAN, test "x$uptime_install_man" = "xyes")
 AM_CONDITIONAL(BUILD_DOC, test "x$uptime_build_doc" = "xyes")
 
+# Check for uptime intent
+AC_ARG_WITH([uptime],
+    AS_HELP_STRING([--with-uptime],
+        [Compile and install the uptime program [default=yes].]),
+    [with_uptime=$withval],
+    [with_uptime=yes])
+
+AM_CONDITIONAL([WITH_UPTIME], [test x$with_uptime != xno])
+AM_COND_IF([WITH_UPTIME], [AC_MSG_NOTICE([WITH_UPTIME defined])])
+
 # Check for upt_selftest intent
 AC_ARG_WITH([upt_selftest],
     AS_HELP_STRING([--with-upt_selftest],
@@ -482,6 +501,8 @@ AC_CONFIG_FILES([Makefile
 
 AM_COND_IF([WITH_SYSTEMD],
     [AC_CONFIG_FILES([
+                 src/uptime.service
+                 src/uptime.conf
     ])],
     [])
 

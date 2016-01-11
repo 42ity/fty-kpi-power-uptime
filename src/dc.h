@@ -53,6 +53,12 @@ void
 void
     dc_uptime (dc_t *self, uint64_t* total, uint64_t* offline);
 
+// pack dc to frame
+UPT_EXPORT zframe_t *dc_pack (dc_t *self);
+
+// unpack dc class from frame
+UPT_EXPORT dc_t *dc_unpack (zframe_t *frame);
+
 //  Print properties of object
 UPT_EXPORT void
     dc_print (dc_t *self);

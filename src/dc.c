@@ -127,6 +127,121 @@ dc_uptime (dc_t *self, uint64_t* total, uint64_t* offline)
     *offline = self->offline;
 }
 
+zframe_t *
+dc_pack (dc_t *self)
+{
+
+    assert (self);
+
+    zmsg_t *msg = zmsg_new ();
+    zmsg_addstr (msg, "dc0x01");
+    zmsg_addstrf (msg, "%"PRIi64, self->last_update);
+    zmsg_addstrf (msg, "%"PRIu64, self->total);
+    zmsg_addstrf (msg, "%"PRIu64, self->offline);
+    zmsg_addstrf (msg, "%zu", zlistx_size (self->ups));
+
+    char *ups = (char*) zlistx_first (self->ups);
+    while (ups != NULL)
+    {
+        zmsg_addstr (msg, ups);
+        ups = (char*) zlistx_next (self->ups);
+    }
+
+    byte *buffer;
+    size_t size = zmsg_encode (msg, &buffer);
+
+    if (size == 0 || !buffer) {
+        zmsg_destroy (&msg);
+        return NULL;
+    }
+
+    zframe_t *frame = zframe_new (buffer, size);
+    free (buffer);
+    zmsg_destroy (&msg);
+
+    return frame;
+}
+
+dc_t *
+dc_unpack (zframe_t *frame)
+{
+    assert (frame);
+
+    zmsg_t *msg = zmsg_decode (zframe_data (frame), zframe_size (frame));
+
+    if (!msg)
+        return NULL;
+
+    if (zmsg_size (msg) < 4) {
+        zmsg_destroy (&msg);
+        return NULL;
+    }
+
+    char *magic = zmsg_popstr (msg);
+    if (!magic || !streq (magic, "dc0x01")) {
+        zsys_error ("unknown magic %s", magic);
+        zmsg_destroy (&msg);
+        return NULL;
+    }
+
+    zstr_free (&magic);
+
+    int64_t last_update;
+    uint64_t total, offline;
+    size_t size;
+
+    char *s_last_update = zmsg_popstr (msg);
+    char *s_total = zmsg_popstr (msg);
+    char *s_offline = zmsg_popstr (msg);
+    char *s_size = zmsg_popstr (msg);
+
+    if (!s_last_update || !s_total || !s_offline || !s_size) {
+        zsys_error ("missing last_update, total, offline or size fields");
+        zstr_free (&s_last_update);
+        zstr_free (&s_total);
+        zstr_free (&s_offline);
+        zstr_free (&s_size);
+        zmsg_destroy (&msg);
+        return NULL;
+    }
+
+    sscanf (s_last_update, "%"SCNi64, &last_update);
+    sscanf (s_total, "%"SCNu64, &total);
+    sscanf (s_offline, "%"SCNu64, &offline);
+    sscanf (s_size, "%zu", &size);
+
+    zstr_free (&s_offline);
+    zstr_free (&s_total);
+    zstr_free (&s_last_update);
+    zstr_free (&s_size);
+
+    dc_t *dc = dc_new ();
+
+    if (!dc) {
+        zmsg_destroy (&msg);
+        return NULL;
+    }
+
+    dc->last_update = last_update;
+    dc->total = total;
+    dc->offline = offline;
+
+    if (size != 0) {
+        char *ups = zmsg_popstr (msg);
+        size_t i = 0;
+        while (ups && i != size) {
+            dc_set_offline (dc, ups);
+            zstr_free (&ups);
+            ups = zmsg_popstr (msg);
+            i += 1;
+        }
+        zstr_free (&ups);
+    }
+
+    zmsg_destroy (&msg);
+    return dc;
+}
+
 void
 dc_print (dc_t *self) {
     printf ("last_update: %"PRIi64"\n", self->last_update);
@@ -177,6 +292,47 @@ dc_test (bool verbose)
     assert (offline == 1);
 
     dc_destroy (&dc);
+
+    // pack/unpack
+    dc = dc_new ();
+    // XXX: dirty tricks for test - class intentionally don't allow to test those directly
+    dc->last_update = 42;
+    dc->total = 1042;
+    dc->offline = 17;
+    dc_set_offline (dc, "UPS001");
+    dc_set_offline (dc, "UPS002");
+    dc_set_offline (dc, "UPS003");
+
+    zframe_t *frame = dc_pack (dc);
+    assert (frame);
+
+    dc_t *dc2 = dc_unpack (frame);
+    assert (dc2);
+    assert (dc->last_update == dc2->last_update);
+    assert (dc->total == dc2->total);
+    assert (dc->offline == dc2->offline);
+    assert (dc_is_offline (dc2));
+    assert (zlistx_size (dc2->ups) == 3);
+    assert (streq ((char*) zlistx_first (dc2->ups), "UPS001"));
+    assert (streq ((char*) zlistx_next (dc2->ups), "UPS002"));
+    assert (streq ((char*) zlistx_next (dc2->ups), "UPS003"));
+
+    zframe_destroy (&frame);
+    dc_destroy (&dc2);
+    dc_destroy (&dc);
+
+    // pack/unpack of empty struct
+    dc = dc_new ();
+    frame = dc_pack (dc);
+    assert (frame);
+
+    dc2 = dc_unpack (frame);
+    assert (dc2);
+    assert (zlistx_size (dc2->ups) == 0);
+    zframe_destroy (&frame);
+    dc_destroy (&dc2);
+    dc_destroy (&dc);
+
     //  @end
 
     printf ("OK\n");

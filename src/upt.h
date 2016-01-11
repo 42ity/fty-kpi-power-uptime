@@ -59,6 +59,14 @@ const char*
 int
     upt_uptime (upt_t *self, const char* ups_name, uint64_t *total, uint64_t *offline);
 
+//save upt_t to file
+int
+    upt_save (upt_t *self, FILE* fp);
+
+// load upt_t from file
+UPT_EXPORT upt_t*
+    upt_load (FILE* fp);
+
 //  Self test of this class
 UPT_EXPORT void
     upt_test (bool verbose);

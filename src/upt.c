@@ -29,8 +29,7 @@
 #include "upt_classes.h"
 
 struct _upt_t {
-    int64_t last_update;
-    zhashx_t *ups2dc;       //map ups name to dc_t struct
+    zhashx_t *ups2dc;       //map ups name to dc name
     zhashx_t *dc;           //map dc name to dc_t struct
 };
 
@@ -58,8 +57,6 @@ upt_new ()
     upt_t *self = (upt_t*) zmalloc (sizeof (upt_t));
     if (!self)
         return NULL;
-
-    self->last_update = zclock_mono() / 1000;
 
     self->dc = zhashx_new ();
     zhashx_set_key_duplicator (self->dc, s_str_duplicator);
@@ -206,6 +203,129 @@ upt_uptime (upt_t *self, const char* dc_name, uint64_t* total, uint64_t* offline
     return 0;
 }
 
+int
+    upt_save (upt_t *self, FILE* fp)
+{
+    assert (self);
+    assert (fp);
+
+    zmsg_t *msg = zmsg_new ();
+    if (!msg)
+        return -1;
+
+    zmsg_addstr (msg, "upt0x01");
+
+    zframe_t *frame = zhashx_pack (self->ups2dc);
+
+    if (!frame) {
+        zmsg_destroy (&msg);
+        return -1;
+    }
+
+    zmsg_addmem (msg, zframe_data (frame), zframe_size (frame));
+    zframe_destroy (&frame);
+
+    zmsg_addstrf (msg, "%zu", zhashx_size (self->dc));
+    dc_t *dc = (dc_t*) zhashx_first (self->dc);
+    while (dc)
+    {
+        char *key = (char*) zhashx_cursor (self->dc);
+        zmsg_addstr (msg, key);
+
+        frame = dc_pack (dc);
+        //TODO: !frame
+        zmsg_addmem (msg, zframe_data (frame), zframe_size (frame));
+        zframe_destroy (&frame);
+        dc = (dc_t*) zhashx_next (self->dc);
+    }
+
+    int r = zmsg_save (msg, fp);
+    zmsg_destroy (&msg);
+    return r;
+}
+
+upt_t*
+    upt_load (FILE* fp)
+{
+    assert (fp);
+
+    zmsg_t *msg = zmsg_load (NULL, fp);
+
+    if (!msg || !zmsg_is (msg)) {
+        zmsg_destroy (&msg);
+        return NULL;
+    }
+
+    char *magic = zmsg_popstr (msg);
+    if (!magic || !streq (magic, "upt0x01")) {
+        zmsg_destroy (&msg);
+        zstr_free (&magic);
+        return NULL;
+    }
+    zstr_free (&magic);
+
+    zframe_t *frame = zmsg_pop (msg);
+    if (!frame) {
+        zmsg_destroy (&msg);
+        return NULL;
+    }
+
+    zhashx_t *ups2dc = zhashx_unpack (frame);
+    zframe_destroy (&frame);
+
+    if (!ups2dc) {
+        zmsg_destroy (&msg);
+        return NULL;
+    }
+
+    upt_t *self = upt_new ();
+    zhashx_destroy (&self->ups2dc);
+    self->ups2dc = ups2dc;
+
+    char *s_size = zmsg_popstr (msg);
+    if (!s_size) {
+        upt_destroy (&self);
+        zmsg_destroy (&msg);
+        return NULL;
+    }
+
+    size_t size;
+    sscanf (s_size, "%zu", &size);
+    zstr_free (&s_size);
+
+    if (size != 0) {
+
+        size_t i = 0;
+        char *key;
+        dc_t *dc;
+        do {
+            key = zmsg_popstr (msg);
+            if (!key)
+                break;
+            frame = zmsg_pop (msg);
+            if (!frame) {
+                zstr_free (&key);
+                break;
+            }
+            dc = dc_unpack (frame);
+            if (!dc) {
+                zframe_destroy (&frame);
+                zstr_free (&key);
+                break;
+            }
+            zhashx_insert (self->dc, key, dc);
+            dc_destroy (&dc);
+            zframe_destroy (&frame);
+            zstr_free (&key);
+            i++;
+        } while (i != size);
+
+    }
+    zmsg_destroy (&msg);
+
+    return self;
+}
+
 //  --------------------------------------------------------------------------
 //  Self test of this class.
 
@@ -294,6 +414,24 @@ upt_test (bool verbose)
     assert (!dc_name);
 
     upt_destroy (&uptime);
+
+    //save/load
+    uptime = upt_new ();
+    FILE *fp = fopen ("src/state", "w");
+    upt_save (uptime, fp);
+    fflush (fp);
+    fclose (fp);
+
+    FILE *fp2 = fopen ("src/state", "r");
+    upt_t *uptime2 = upt_load(fp2);
+    fclose (fp2);
+    assert (uptime2);
+
+    upt_destroy (&uptime2);
+    upt_destroy (&uptime);
+
+    r = unlink ("src/state");
+    assert (r == 0);
     //  @end
 
     printf ("OK\n");

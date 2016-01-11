@@ -88,8 +88,10 @@ int
     assert (self);
     assert (self->dir);
 
+    int r;
     char* path;
-    asprintf (&path, "%s/%s", self->dir, "state");
+    r = asprintf (&path, "%s/%s", self->dir, "state");
+    assert (r > 0);
 
     FILE *fp = fopen (path, "r");
     zstr_free (&path);
@@ -114,8 +116,10 @@ int
     assert (self);
     assert (self->dir);
 
+    int r;
     char* path;
-    asprintf (&path, "%s/%s", self->dir, "state.new");
+    r = asprintf (&path, "%s/%s", self->dir, "state.new");
+    assert (r > 0);
 
     FILE *fp = fopen (path, "w");
     zstr_free (&path);
@@ -123,7 +127,7 @@ int
     if (!fp)
         return -1;
 
-    int r = upt_save (self->upt, fp);
+    r = upt_save (self->upt, fp);
     fflush (fp);
     fdatasync (fileno (fp));
     fclose (fp);
@@ -133,8 +137,10 @@ int
 
     char* oldpath;
     char* newpath;
-    asprintf (&oldpath, "%s/%s", self->dir, "state.new");
-    asprintf (&newpath, "%s/%s", self->dir, "state");
+    r = asprintf (&oldpath, "%s/%s", self->dir, "state.new");
+    assert (r > 0);
+    r = asprintf (&newpath, "%s/%s", self->dir, "state");
+    assert (r > 0);
     r = rename (oldpath, newpath);
     zstr_free (&oldpath);
     zstr_free (&newpath);
@@ -182,6 +188,7 @@ s_handle_set (upt_server_t *server, mlm_client_t *client, zmsg_t *msg)
 static void
 s_handle_uptime (upt_server_t *server, mlm_client_t *client, zmsg_t *msg)
 {
+    int r;
     char *dc_name = zmsg_popstr (msg);
     if (!dc_name) {
         zsys_error ("no DC name in message, ignoring");
@@ -196,7 +203,7 @@ s_handle_uptime (upt_server_t *server, mlm_client_t *client, zmsg_t *msg)
     }
 
     uint64_t total, offline;
-    int r = upt_uptime (server->upt, dc_name, &total, &offline);
+    r = upt_uptime (server->upt, dc_name, &total, &offline);
 
     if (r == -1) {
         zsys_error ("Can't compute uptime, most likely unknown DC");
@@ -210,8 +217,10 @@ s_handle_uptime (upt_server_t *server, mlm_client_t *client, zmsg_t *msg)
     }
 
     char *s_total, *s_offline;
-    asprintf (&s_total, "%"PRIu64, total);
-    asprintf (&s_offline, "%"PRIu64, offline);
+    r = asprintf (&s_total, "%"PRIu64, total);
+    assert (r > 0);
+    r = asprintf (&s_offline, "%"PRIu64, offline);
+    assert (r > 0);
 
     mlm_client_sendtox (
         client,

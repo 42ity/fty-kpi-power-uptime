@@ -55,13 +55,18 @@ Depends:
 Description: development files for uptime
  This package contains development files for uptime: compute data center uptime
 
+Package: uptime
+Architecture: any
+Depends: ${misc:Depends}, ${shlibs:Depends}
+Description: compute data center uptime
+ Main package for uptime: compute data center uptime
 
 Package: uptime-dbg
 Architecture: any
 Section: debug
 Priority: extra
 Depends:
-    libupt0 (= ${binary:Version}),
+    uptime (= ${binary:Version}),
     ${misc:Depends}
 Description: debugging symbols for uptime
  This package contains the debugging symbols for uptime : compute data center uptime.

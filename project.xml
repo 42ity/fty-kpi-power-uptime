@@ -18,4 +18,8 @@
     <class name = "dc" private="1">DC information</class>
     <class name = "upt" private="1">DC uptime</class>
     <class name = "upt_server" >Actor computing uptime</class>
+    <main name = "kpi-uptime" service = "1" no_config = "1">
+        Main daemon
+        <extra type="systemd-tmpfiles" />
+    </main>
 </project>

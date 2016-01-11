@@ -1,0 +1,25 @@
+Name(7)
+=======
+
+
+NAME
+----
+uptime - Compute Data Center uptime
+
+
+SYNOPSIS
+--------
+----
+#include <uptime.h>
+
+cc ['flags'] 'files' -lupt ['libraries']
+----
+
+
+DESCRIPTION
+-----------
+
+Classes
+~~~~~~~
+
+Something.

@@ -473,6 +473,10 @@ upt_server_test (bool verbose)
         zsock_wait (server);
     }
 
+    int r;
+    r = unlink ("src/state");
+    assert (r == 0 || r == -1);
+
     zstr_sendx (server, "CONNECT", endpoint, NULL);
     zsock_wait (server);
     zstr_sendx (server, "CONSUMER", "METRICS", "status.ups.*", NULL);
@@ -490,7 +494,6 @@ upt_server_test (bool verbose)
     zmsg_addstrf (req, "%s", "UPS001");
     mlm_client_sendto (ui, "uptime", "UPTIME", NULL, 5000, &req);
 
-    int r;
     char *subject, *command, *total, *offline;
     // check the uptime
     zclock_sleep (1000);
@@ -563,6 +566,9 @@ upt_server_test (bool verbose)
 
     zactor_destroy (&server);
     zactor_destroy (&broker);
+
+    r = unlink ("src/state");
+    assert (r == 0);
     //  @end
 
     printf ("OK\n");

@@ -5,7 +5,7 @@ After=network.target malamute.service
 [Service]
 Type=simple
 Environment="prefix=@prefix@"
-ExecStart=@prefix@/bin/uptime
+ExecStart=@prefix@/bin/kpi-uptime
 
 [Install]
 WantedBy=bios.target

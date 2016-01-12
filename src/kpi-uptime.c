@@ -26,7 +26,7 @@ int main(int argc, char**argv) {
     zactor_t *server = zactor_new (upt_server, "uptime");
     zstr_sendx (server, "CONNECT", endpoint, NULL);
     zsock_wait (server);
-    zstr_sendx (server, "CONSUMER", "METRICS", "ups.status.*", NULL);
+    zstr_sendx (server, "CONSUMER", "METRICS", "status.ups.*", NULL);
     zsock_wait (server);
     zstr_sendx (server, "CONFIG", dir, NULL);
     zsock_wait (server);

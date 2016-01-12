@@ -239,7 +239,15 @@ s_handle_uptime (upt_server_t *server, mlm_client_t *client, zmsg_t *msg)
 static bool
 s_ups_is_onbattery (bios_proto_t *msg)
 {
-    return streq (bios_proto_value (msg), "onbattery");    //TODO: real impl
+    const char *state = bios_proto_value (msg);
+    if (isdigit (state[0])) {
+        // see core.git/src/shared/upsstatus.h STATUS_OB == 1 << 4 == 16
+        int istate = atoi (state);
+        return (istate & 0x10) != 0;
+    }
+    else
+        // this is forward compatible - new protocol allows strings to be passed
+        return strstr (state, "OB") != NULL;
 }
 
 static void
@@ -412,7 +420,7 @@ upt_server_test (bool verbose)
 
     zstr_sendx (server, "CONNECT", endpoint, NULL);
     zsock_wait (server);
-    zstr_sendx (server, "CONSUMER", "METRICS", "ups.status.*", NULL);
+    zstr_sendx (server, "CONSUMER", "METRICS", "status.ups.*", NULL);
     zsock_wait (server);
     zstr_sendx (server, "CONFIG", "src/", NULL);
     zsock_wait (server);
@@ -449,8 +457,8 @@ upt_server_test (bool verbose)
 
     // put ups to onbattery
     zmsg_t *metric = bios_proto_encode_metric (NULL,
-            "ups.status", "UPS007", "onbattery", "", -1);
-    mlm_client_send (ups, "ups.status@UPS007", &metric);
+            "status.ups", "UPS007", "16", "", -1);
+    mlm_client_send (ups, "status.ups@UPS007", &metric);
 
     // check the uptime
     zclock_sleep (1000);

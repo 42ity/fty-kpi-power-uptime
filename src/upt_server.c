@@ -33,6 +33,7 @@ struct _upt_server_t {
     bool verbose;
     upt_t *upt;
     char *dir;
+    char *name;
 };
 
 //  Create a new upt_server
@@ -45,6 +46,7 @@ UPT_EXPORT upt_server_t *
 
     server->verbose = false;
     server->upt = upt_new ();
+    server->name = strdup ("uptime");
 
     return server;
 }
@@ -59,6 +61,7 @@ UPT_EXPORT void
     upt_server_t *self = *self_p;
     upt_destroy (&self->upt);
     zstr_free (&self->dir);
+    zstr_free (&self->name);
     free (self);
     *self_p = NULL;
 }
@@ -94,16 +97,20 @@ int
     assert (r > 0);
 
     FILE *fp = fopen (path, "r");
-    zstr_free (&path);
 
-    if (!fp)
+    if (!fp) {
+        zsys_error ("Fail to open '%s'", path);
         return -1;
+    }
+    zstr_free (&path);
 
     upt_t *upt = upt_load (fp);
     fclose (fp);
 
-    if (!upt)
+    if (!upt) {
+        zsys_error ("Fail to decode '%s'", path);
         return -1;
+    }
 
     upt_destroy (&self->upt);
     self->upt = upt;
@@ -122,18 +129,22 @@ int
     assert (r > 0);
 
     FILE *fp = fopen (path, "w");
-    zstr_free (&path);
 
-    if (!fp)
+    if (!fp) {
+        zsys_error ("Fail to open '%s': %s", path, strerror (errno));
         return -1;
+    }
+    zstr_free (&path);
 
     r = upt_save (self->upt, fp);
     fflush (fp);
     fdatasync (fileno (fp));
     fclose (fp);
 
-    if (r != 0)
+    if (r != 0) {
+        zsys_error ("Fail to save state : %s", strerror (errno));
         return -1;
+    }
 
     char* oldpath;
     char* newpath;
@@ -145,8 +156,10 @@ int
     zstr_free (&oldpath);
     zstr_free (&newpath);
 
-    if (r != 0)
+    if (r != 0) {
+        zsys_error ("Fail to rename state file: %s", strerror (errno));
         return r;
+    }
 
     return 0;
 }
@@ -166,10 +179,15 @@ s_handle_set (upt_server_t *server, mlm_client_t *client, zmsg_t *msg)
         return;
     }
 
+    if (server->verbose)
+        zsys_debug ("%s:\tSET dc_name: %s", server->name, dc_name);
+
     zlistx_t *ups = zlistx_new ();
     zlistx_set_destructor (ups, s_str_destructor);
     char *ups_name;
     while ((ups_name = zmsg_popstr (msg)) != NULL) {
+        if (server->verbose)
+            zsys_debug ("%s:\tSET        : %s", server->name, ups_name);
         zlistx_add_end (ups, ups_name);
     }
 
@@ -276,6 +294,10 @@ void upt_server (zsock_t *pipe, void *args)
     char *name = (char*) args;
     mlm_client_t *client = mlm_client_new ();
     upt_server_t *server = upt_server_new ();
+    //FIXME: change constructor or add set_name method ...
+    zstr_free (&server->name);
+    server->name = strdup (name);
+
     zpoller_t *poller = zpoller_new (pipe, mlm_client_msgpipe (client), NULL);
     zsock_signal (pipe, 0);
 
@@ -285,6 +307,14 @@ void upt_server (zsock_t *pipe, void *args)
         if (which == pipe) {
             zmsg_t *msg = zmsg_recv (pipe);
             char *cmd = zmsg_popstr (msg);
+
+            if (!cmd) {
+                zsys_warning ("missing command in pipe");
+                zstr_free (&cmd);
+                zmsg_destroy (&msg);
+                continue;
+            }
+
             if (server->verbose)
                 zsys_debug ("%s: API command=%s", name, cmd);
 
@@ -326,7 +356,7 @@ void upt_server (zsock_t *pipe, void *args)
                     zsys_error ("%s: CONFIG: directory is empty", name);
                 upt_server_set_dir (server, dir);
                 int r = upt_server_load_state (server);
-                if (!r)
+                if (r == -1)
                     zsys_error ("%s: CONFIG: failed to load %s/state", name, dir);
                 zstr_free (&dir);
                 zsock_signal (pipe, 0);
@@ -342,21 +372,45 @@ void upt_server (zsock_t *pipe, void *args)
         if (!msg)
             continue;
 
+        if (server->verbose) {
+            zsys_debug ("%s:\tcommand=%s", name, mlm_client_command (client));
+            zsys_debug ("%s:\tsender=%s", name, mlm_client_sender (client));
+            zsys_debug ("%s:\tsubject=%s", name, mlm_client_subject (client));
+        }
+
         if (streq (mlm_client_command (client), "MAILBOX DELIVER"))
         {
             char *command = zmsg_popstr (msg);
             if (server->verbose)
-                zsys_debug ("%s:\tProto command=%s", name, command);
+                zsys_debug ("%s:\tproto-command=%s", name, command);
             if (!command) {
                 zmsg_destroy (&msg);
-                continue;
+                mlm_client_sendtox (
+                    client,
+                    mlm_client_sender (client),
+                    "UPTIME",
+                    "ERROR",
+                    "Unknown command",
+                    NULL
+                );
             }
+            else
             if (streq (command, "SET")) {
                 s_handle_set (server, client, msg);
             }
             else
             if (streq (command, "UPTIME")) {
                 s_handle_uptime (server, client, msg);
+            }
+            else {
+                mlm_client_sendtox (
+                    client,
+                    mlm_client_sender (client),
+                    "UPTIME",
+                    "ERROR",
+                    "Unknown command",
+                    NULL
+                );
             }
             zstr_free (&command);
         }

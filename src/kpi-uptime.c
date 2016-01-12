@@ -20,13 +20,22 @@ with this program; if not, write to the Free Software Foundation, Inc.,
 
 int main(int argc, char**argv) {
 
+    bool verbose = false;
+
+    if (argc == 2 && streq (argv[1], "-v"))
+        verbose = true;
+
     static const char* endpoint = "ipc://@/malamute";
     static const char* dir = "/var/lib/bios/uptime/";
 
     zactor_t *server = zactor_new (upt_server, "uptime");
+    if (verbose) {
+        zstr_sendx (server, "VERBOSE", NULL);
+        zsock_wait (server);
+    }
     zstr_sendx (server, "CONNECT", endpoint, NULL);
     zsock_wait (server);
-    zstr_sendx (server, "CONSUMER", "METRICS", "ups.status.*", NULL);
+    zstr_sendx (server, "CONSUMER", "METRICS", "status.ups.*", NULL);
     zsock_wait (server);
     zstr_sendx (server, "CONFIG", dir, NULL);
     zsock_wait (server);

@@ -253,12 +253,14 @@ upt_t*
 
     if (!msg || !zmsg_is (msg)) {
         zmsg_destroy (&msg);
+        zsys_error ("upt: can't allocate msg");
         return NULL;
     }
 
     char *magic = zmsg_popstr (msg);
     if (!magic || !streq (magic, "upt0x01")) {
         zmsg_destroy (&msg);
+        zsys_error ("upt: invalid magic, expected 'upt0x01', got '%s'", magic);
         zstr_free (&magic);
         return NULL;
     }
@@ -267,6 +269,7 @@ upt_t*
     zframe_t *frame = zmsg_pop (msg);
     if (!frame) {
         zmsg_destroy (&msg);
+        zsys_error ("upt: can't decode frame");
         return NULL;
     }
 
@@ -275,6 +278,7 @@ upt_t*
 
     if (!ups2dc) {
         zmsg_destroy (&msg);
+        zsys_error ("upt: can't unpack to ups2dc hash");
         return NULL;
     }
 
@@ -286,6 +290,7 @@ upt_t*
     if (!s_size) {
         upt_destroy (&self);
         zmsg_destroy (&msg);
+        zsys_error ("upt: missing size specifier");
         return NULL;
     }
 
@@ -414,6 +419,8 @@ upt_test (bool verbose)
     assert (!dc_name);
 
     upt_destroy (&uptime);
+    r = unlink ("src/state");
+    assert (r == 0 || r == -1);
 
     //save/load
     uptime = upt_new ();

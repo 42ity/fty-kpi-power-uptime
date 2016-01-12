@@ -419,6 +419,8 @@ upt_test (bool verbose)
     assert (!dc_name);
 
     upt_destroy (&uptime);
+    r = unlink ("src/state");
+    assert (r == 0 || r == -1);
 
     //save/load
     uptime = upt_new ();

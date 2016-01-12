@@ -99,7 +99,8 @@ int
     FILE *fp = fopen (path, "r");
 
     if (!fp) {
-        zsys_error ("Fail to open '%s'", path);
+        zsys_error ("Fail to open '%s': %s", path, strerror (errno));
+        zstr_free (&path);
         return -1;
     }
     zstr_free (&path);

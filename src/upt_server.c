@@ -92,26 +92,32 @@ int
     assert (self->dir);
 
     int r;
-    char* path;
-    r = asprintf (&path, "%s/%s", self->dir, "state");
-    assert (r > 0);
+    zfile_t *f = zfile_new (self->dir, "state");
+    r = zfile_input (f);
+    if (!zfile_is_regular (f) || !zfile_is_readable (f) || r == -1) {
+        if (self->verbose)
+            zsys_debug ("%s does not exists, or is not readable", zfile_filename (f, NULL));
+            zfile_destroy (&f);
+        return -2;
+    }
 
-    FILE *fp = fopen (path, "r");
+    FILE *fp = zfile_handle (f);
 
     if (!fp) {
-        zsys_error ("Fail to open '%s': %s", path, strerror (errno));
-        zstr_free (&path);
+        zsys_error ("Fail to open '%s': %s", zfile_filename (f, NULL), strerror (errno));
+        zfile_destroy (&f);
         return -1;
     }
-    zstr_free (&path);
 
     upt_t *upt = upt_load (fp);
-    fclose (fp);
+    zfile_close (f);
 
     if (!upt) {
-        zsys_error ("Fail to decode '%s'", path);
+        zsys_error ("Fail to decode '%s'", zfile_filename (f, NULL));
+        zfile_destroy (&f);
         return -1;
     }
+    zfile_destroy (&f);
 
     upt_destroy (&self->upt);
     self->upt = upt;
@@ -125,22 +131,21 @@ int
     assert (self->dir);
 
     int r;
-    char* path;
-    r = asprintf (&path, "%s/%s", self->dir, "state.new");
-    assert (r > 0);
 
-    FILE *fp = fopen (path, "w");
+    zfile_t *f = zfile_new (self->dir, "state.new");
+    r = zfile_output (f);
+    FILE *fp = zfile_handle (f);
 
-    if (!fp) {
-        zsys_error ("Fail to open '%s': %s", path, strerror (errno));
+    if (!fp || r == -1) {
+        zsys_error ("Fail to open '%s': %s", zfile_filename (f, NULL), strerror (errno));
         return -1;
     }
-    zstr_free (&path);
 
     r = upt_save (self->upt, fp);
     fflush (fp);
     fdatasync (fileno (fp));
-    fclose (fp);
+    zfile_close (f);
+    zfile_destroy (&f);
 
     if (r != 0) {
         zsys_error ("Fail to save state : %s", strerror (errno));
@@ -354,11 +359,13 @@ void upt_server (zsock_t *pipe, void *args)
             if (streq (cmd, "CONFIG")) {
                 char* dir = zmsg_popstr (msg);
                 if (!dir)
-                    zsys_error ("%s: CONFIG: directory is empty", name);
-                upt_server_set_dir (server, dir);
-                int r = upt_server_load_state (server);
-                if (r == -1)
-                    zsys_error ("%s: CONFIG: failed to load %s/state", name, dir);
+                    zsys_error ("%s: CONFIG: directory is null", name);
+                else {
+                    upt_server_set_dir (server, dir);
+                    int r = upt_server_load_state (server);
+                    if (r == -1)
+                        zsys_error ("%s: CONFIG: failed to load %s/state", name, dir);
+                }
                 zstr_free (&dir);
                 zsock_signal (pipe, 0);
             }
@@ -567,8 +574,18 @@ upt_server_test (bool verbose)
     zactor_destroy (&server);
     zactor_destroy (&broker);
 
+    // test for private function only!! UGLY REDONE DO NOT READ!!
+    upt_server_t *s = upt_server_new ();
+    upt_server_set_dir (s, "src");
+    r = upt_server_load_state (s);
+    assert (r == 0);
+
     r = unlink ("src/state");
     assert (r == 0);
+    r = upt_server_load_state (s);
+    assert (r == -2);
+
+    upt_server_destroy (&s);
     //  @end
 
     printf ("OK\n");

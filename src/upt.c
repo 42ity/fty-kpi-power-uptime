@@ -319,7 +319,6 @@ upt_t*
                 break;
             }
             zhashx_insert (self->dc, key, dc);
-            dc_destroy (&dc);
             zframe_destroy (&frame);
             zstr_free (&key);
             i++;

@@ -24,6 +24,9 @@ int main(int argc, char**argv) {
 
     if (argc == 2 && streq (argv[1], "-v"))
         verbose = true;
+    char *bios_log_level = getenv ("BIOS_LOG_LEVEL");
+    if (bios_log_level && streq (bios_log_level, "LOG_DEBUG"))
+        verbose = true;
 
     static const char* endpoint = "ipc://@/malamute";
     static const char* dir = "/var/lib/bios/uptime/";

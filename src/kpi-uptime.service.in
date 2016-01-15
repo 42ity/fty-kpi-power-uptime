@@ -1,9 +1,16 @@
 [Unit]
-Description=uptime service
+Description=bios KPI uptime service
+Requires=network.target malamute.service
 After=network.target malamute.service
+PartOf=bios.target
 
 [Service]
 Type=simple
+User=nobody
+EnvironmentFile=-/etc/default/bios
+EnvironmentFile=-/etc/sysconfig/bios
+EnvironmentFile=-/etc/default/bios__%n.conf
+EnvironmentFile=-/etc/sysconfig/bios__%n.conf
 Environment="prefix=@prefix@"
 ExecStart=@prefix@/bin/kpi-uptime
 

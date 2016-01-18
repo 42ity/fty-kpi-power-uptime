@@ -6,7 +6,7 @@ PartOf=bios.target
 
 [Service]
 Type=simple
-User=nobody
+User=bios
 EnvironmentFile=-/etc/default/bios
 EnvironmentFile=-/etc/sysconfig/bios
 EnvironmentFile=-/etc/default/bios__%n.conf

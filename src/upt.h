@@ -63,6 +63,9 @@ int
 int
     upt_save (upt_t *self, FILE* fp);
 
+UPT_EXPORT void
+    upt_print (upt_t* self);
+
 // load upt_t from file
 UPT_EXPORT upt_t*
     upt_load (FILE* fp);

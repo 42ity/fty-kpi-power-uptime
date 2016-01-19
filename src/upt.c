@@ -191,6 +191,7 @@ upt_uptime (upt_t *self, const char* dc_name, uint64_t* total, uint64_t* offline
 {
     assert (self);
     assert (dc_name);
+
     dc_t *dc = (dc_t*) zhashx_lookup (self->dc, dc_name);
     if (!dc) {
         *total = 0;
@@ -201,6 +202,32 @@ upt_uptime (upt_t *self, const char* dc_name, uint64_t* total, uint64_t* offline
     dc_uptime (dc, total, offline);
 
     return 0;
+}
+
+UPT_EXPORT void
+    upt_print (upt_t* self)
+{
+    zsys_debug ("self: <%p>\n", (void*) self);
+    zsys_debug ("self->ups2dc: \n");
+    for (char* dc_name = (char*) zhashx_first (self->ups2dc);
+               dc_name != NULL;
+               dc_name = (char*) zhashx_next (self->ups2dc))
+    {
+        zsys_debug ("\t'%s' : '%s'\n",
+                (char*) zhashx_cursor (self->ups2dc),
+                dc_name);
+    }
+    zsys_debug ("self->dc: \n");
+    for (dc_t *dc = (dc_t*) zhashx_first (self->dc);
+               dc != NULL;
+               dc = (dc_t*) zhashx_next (self->dc))
+    {
+        zsys_debug ("'%s' <%p>:\n",
+                (char*) zhashx_cursor (self->dc),
+                (void*) dc);
+        dc_print (dc);
+        zsys_debug ("----------\n");
+    }
 }
 
 int

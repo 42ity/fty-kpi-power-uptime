@@ -31,6 +31,7 @@
 //TODO: should not be mlm_client_t a part of upt_server_t???
 struct _upt_server_t {
     bool verbose;
+    int request_counter;
     upt_t *upt;
     char *dir;
     char *name;
@@ -45,6 +46,7 @@ UPT_EXPORT upt_server_t *
         return NULL;
 
     server->verbose = false;
+    server->request_counter = 0;
     server->upt = upt_new ();
     server->name = strdup ("uptime");
 
@@ -395,6 +397,13 @@ void upt_server (zsock_t *pipe, void *args)
             zsys_debug ("%s:\tcommand=%s", name, mlm_client_command (client));
             zsys_debug ("%s:\tsender=%s", name, mlm_client_sender (client));
             zsys_debug ("%s:\tsubject=%s", name, mlm_client_subject (client));
+        }
+
+        if ((server->request_counter++) % 100 == 0)
+        {
+            if (server->verbose)
+                zsys_debug ("%s: saving the state", name);
+            upt_server_save_state (server);
         }
 
         if (streq (mlm_client_command (client), "MAILBOX DELIVER"))

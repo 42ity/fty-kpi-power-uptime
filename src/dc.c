@@ -244,16 +244,16 @@ dc_unpack (zframe_t *frame)
 
 void
 dc_print (dc_t *self) {
-    printf ("last_update: %"PRIi64"\n", self->last_update);
-    printf ("total: %"PRIu64"\n", self->total);
-    printf ("offline: %"PRIu64"\n", self->offline);
-    printf ("ups (%zu):\n", zlistx_size (self->ups));
+    zsys_debug ("last_update: %"PRIi64"\n", self->last_update);
+    zsys_debug ("total: %"PRIu64"\n", self->total);
+    zsys_debug ("offline: %"PRIu64"\n", self->offline);
+    zsys_debug ("ups (%zu):\n", zlistx_size (self->ups));
 
     for (char* i = (char*) zlistx_first (self->ups);
                i != NULL;
                i = (char*) zlistx_next (self->ups))
     {
-        printf ("    %s\n", i);
+        zsys_debug ("    %s\n", i);
     }
 }
 

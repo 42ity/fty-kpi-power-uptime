@@ -59,9 +59,9 @@ dc_new (void)
     dc_t *self = (dc_t*) zmalloc (sizeof (dc_t));
     if (!self)
         return NULL;
-    self->last_update = zclock_mono () / 1000;
-    self->total = 0;
-    self->offline = 0;
+    self->last_update = zclock_mono () / 1000LL;
+    self->total = 0LL;
+    self->offline = 0LL;
     self->ups = zlistx_new ();
     zlistx_set_duplicator (self->ups, s_str_duplicator);
     zlistx_set_destructor (self->ups, s_str_destructor);
@@ -116,12 +116,19 @@ dc_uptime (dc_t *self, uint64_t* total, uint64_t* offline)
 {
     assert (self);
 
-    int64_t now = zclock_mono() / 1000;
-    self->total += (now - self->last_update);
-    if (dc_is_offline (self))
-        self->offline += (now - self->last_update);
+    int64_t now = (zclock_mono() / 1000LL);
+    int64_t time_diff = (now - self->last_update);
 
-    self->last_update = now;
+    // XXX: this should not happen due mono clock used, but we already got
+    // weird total time, so newer add negative number typecasted to unsigned
+    if (time_diff > 0LL) {
+
+        self->total += time_diff;
+        if (dc_is_offline (self))
+            self->offline += time_diff;
+
+        self->last_update = now;
+    }
 
     *total = self->total;
     *offline = self->offline;

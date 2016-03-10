@@ -542,7 +542,7 @@ upt_server_test (bool verbose)
 
     // put ups to onbattery
     zmsg_t *metric = bios_proto_encode_metric (NULL,
-            "status.ups", "UPS007", "16", "", -1);
+            "status.ups", "UPS007", "16", "", time (NULL));
     mlm_client_send (ups, "status.ups@UPS007", &metric);
 
     // check the uptime

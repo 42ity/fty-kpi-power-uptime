@@ -130,7 +130,10 @@ int
     upt_server_save_state (upt_server_t *self)
 {
     assert (self);
-    assert (self->dir);
+    if (!self->dir) {
+        zsys_error ("Saving state directory not configured yet. Probably got some messages before CONFIG.");
+        return -1;
+    }
 
     int r;
 

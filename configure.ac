@@ -7,11 +7,7 @@
 # Process this file with autoconf to produce a configure script.
 AC_PREREQ(2.61)
 #
-# The version number is extracted from include/uptime.h using
-# the version.sh script. Hence, it should be updated there.
-# The version in git should reflect the *next* version planned.
-#
-AC_INIT([uptime],[m4_esyscmd([./version.sh uptime.h])],[email@hostname.com])
+AC_INIT([kpi-uptime],[0.0.0],[email@hostname.com])
 
 AC_CONFIG_AUX_DIR(config)
 AC_CONFIG_MACRO_DIR(config)
@@ -24,11 +20,11 @@ PV_MAJOR=`echo $PACKAGE_VERSION | cut -d . -f 1`
 PV_MINOR=`echo $PACKAGE_VERSION | cut -d . -f 2`
 PV_PATCH=`echo $PACKAGE_VERSION | cut -d . -f 3`
 AC_DEFINE_UNQUOTED([PACKAGE_VERSION_MAJOR],[$PV_MAJOR],
-    [UPTIME major version])
+    [UPT major version])
 AC_DEFINE_UNQUOTED([PACKAGE_VERSION_MINOR],[$PV_MINOR],
-    [UPTIME minor version])
+    [UPT minor version])
 AC_DEFINE_UNQUOTED([PACKAGE_VERSION_PATCH],[$PV_PATCH],
-    [UPTIME patchlevel])
+    [UPT patchlevel])
 # This lets us use PACKAGE_VERSION in Makefiles
 AC_SUBST(PACKAGE_VERSION)
 
@@ -44,7 +40,7 @@ LTVER="0:0:0"
 AC_SUBST(LTVER)
 
 # Capture c flags
-UPTIME_ORIG_CFLAGS="${CFLAGS:-none}"
+UPT_ORIG_CFLAGS="${CFLAGS:-none}"
 
 # Checks for programs
 AC_PROG_CC
@@ -58,64 +54,22 @@ PKG_PROG_PKG_CONFIG
 
 # Code coverage
 AC_ARG_WITH(gcov, [AS_HELP_STRING([--with-gcov=yes/no],
-                  [With GCC Code Coverage reporting.])],
-                  [UPTIME_GCOV="$withval"])
+                  [With GCC Code Coverage reporting])],
+                  [UPT_GCOV="$withval"])
 
-if test "x${UPTIME_GCOV}" == "xyes"; then
+if test "x${UPT_GCOV}" == "xyes"; then
     CFLAGS="-O0 -g -fprofile-arcs -ftest-coverage"
 
-    if test "x${UPTIME_ORIG_CFLAGS}" != "xnone"; then
-        CFLAGS="${CFLAGS} ${UPTIME_ORIG_CFLAGS}"
+    if test "x${UPT_ORIG_CFLAGS}" != "xnone"; then
+        CFLAGS="${CFLAGS} ${UPT_ORIG_CFLAGS}"
     fi
+    AM_CONDITIONAL(WITH_GCOV, true)
+else
+    AM_CONDITIONAL(WITH_GCOV, false)
 fi
 
 PREVIOUS_CFLAGS="${CFLAGS}"
 PREVIOUS_LIBS="${LIBS}"
-
-
-was_libsodium_check_lib_detected=no
-
-PKG_CHECK_MODULES([libsodium], [libsodium >= 0.0.0],
-    [
-    ],
-    [
-        AC_ARG_WITH([libsodium],
-            [
-                AS_HELP_STRING([--with-libsodium],
-                [Specify libsodium prefix])
-            ],
-            [search_libsodium="yes"],
-            [])
-
-        libsodium_synthetic_cflags=""
-        libsodium_synthetic_libs="-lsodium"
-
-        if test "x$search_libsodium" = "xyes"; then
-            if test -r "${with_libsodium}/include/sodium.h"; then
-                libsodium_synthetic_cflags="-I${with_libsodium}/include"
-                libsodium_synthetic_libs="-L${with_libsodium}/lib -lsodium"
-            else
-                AC_MSG_ERROR([${with_libsodium}/include/sodium.h not found. Please check libsodium prefix])
-            fi
-        fi
-
-        AC_CHECK_LIB([libsodium], [sodium_init],
-            [
-                CFLAGS="${libsodium_synthetic_cflags} ${CFLAGS}"
-                LDFLAGS="${libsodium_synthetic_libs} ${LDFLAGS}"
-                LIBS="${libsodium_synthetic_libs} ${LIBS}"
-
-                AC_SUBST([libsodium_CFLAGS],[${libsodium_synthetic_cflags}])
-                AC_SUBST([libsodium_LIBS],[${libsodium_synthetic_libs}])
-                was_libsodium_check_lib_detected=yes
-            ],
-            [AC_MSG_ERROR([cannot link with -lsodium, install libsodium.])])
-    ])
-
-if test "x$was_libsodium_check_lib_detected" = "xno"; then
-    CFLAGS="${libsodium_CFLAGS} ${CFLAGS}"
-    LIBS="${libsodium_LIBS} ${LIBS}"
-fi
 
 
 was_libzmq_check_lib_detected=no
@@ -144,6 +98,7 @@ PKG_CHECK_MODULES([libzmq], [libzmq >= 0.0.0],
             fi
         fi
 
+
         AC_CHECK_LIB([libzmq], [zmq_init],
             [
                 CFLAGS="${libzmq_synthetic_cflags} ${CFLAGS}"
@@ -154,14 +109,13 @@ PKG_CHECK_MODULES([libzmq], [libzmq >= 0.0.0],
                 AC_SUBST([libzmq_LIBS],[${libzmq_synthetic_libs}])
                 was_libzmq_check_lib_detected=yes
             ],
-            [AC_MSG_ERROR([cannot link with -lzmq, install libzmq.])])
+            [AC_MSG_ERROR([cannot link with -lzmq, install libzmq])])
     ])
 
 if test "x$was_libzmq_check_lib_detected" = "xno"; then
     CFLAGS="${libzmq_CFLAGS} ${CFLAGS}"
     LIBS="${libzmq_LIBS} ${LIBS}"
 fi
-
 
 was_czmq_check_lib_detected=no
 
@@ -189,6 +143,7 @@ PKG_CHECK_MODULES([czmq], [libczmq >= 0.0.0],
             fi
         fi
 
+
         AC_CHECK_LIB([libczmq], [zctx_test],
             [
                 CFLAGS="${czmq_synthetic_cflags} ${CFLAGS}"
@@ -199,14 +154,13 @@ PKG_CHECK_MODULES([czmq], [libczmq >= 0.0.0],
                 AC_SUBST([czmq_LIBS],[${czmq_synthetic_libs}])
                 was_czmq_check_lib_detected=yes
             ],
-            [AC_MSG_ERROR([cannot link with -lczmq, install libczmq.])])
+            [AC_MSG_ERROR([cannot link with -lczmq, install libczmq])])
     ])
 
 if test "x$was_czmq_check_lib_detected" = "xno"; then
     CFLAGS="${czmq_CFLAGS} ${CFLAGS}"
     LIBS="${czmq_LIBS} ${LIBS}"
 fi
-
 
 was_malamute_check_lib_detected=no
 
@@ -234,6 +188,7 @@ PKG_CHECK_MODULES([malamute], [libmlm >= 0.0.0],
             fi
         fi
 
+
         AC_CHECK_LIB([libmlm], [mlm_server_test],
             [
                 CFLAGS="${malamute_synthetic_cflags} ${CFLAGS}"
@@ -244,14 +199,13 @@ PKG_CHECK_MODULES([malamute], [libmlm >= 0.0.0],
                 AC_SUBST([malamute_LIBS],[${malamute_synthetic_libs}])
                 was_malamute_check_lib_detected=yes
             ],
-            [AC_MSG_ERROR([cannot link with -lmlm, install libmlm.])])
+            [AC_MSG_ERROR([cannot link with -lmlm, install libmlm])])
     ])
 
 if test "x$was_malamute_check_lib_detected" = "xno"; then
     CFLAGS="${malamute_CFLAGS} ${CFLAGS}"
     LIBS="${malamute_LIBS} ${LIBS}"
 fi
-
 
 was_libbiosproto_check_lib_detected=no
 
@@ -279,6 +233,7 @@ PKG_CHECK_MODULES([libbiosproto], [biosproto >= 0.0.0],
             fi
         fi
 
+
         AC_CHECK_LIB([biosproto], [bios_proto_test],
             [
                 CFLAGS="${libbiosproto_synthetic_cflags} ${CFLAGS}"
@@ -289,7 +244,7 @@ PKG_CHECK_MODULES([libbiosproto], [biosproto >= 0.0.0],
                 AC_SUBST([libbiosproto_LIBS],[${libbiosproto_synthetic_libs}])
                 was_libbiosproto_check_lib_detected=yes
             ],
-            [AC_MSG_ERROR([cannot link with -lbiosproto, install biosproto.])])
+            [AC_MSG_ERROR([cannot link with -lbiosproto, install biosproto])])
     ])
 
 if test "x$was_libbiosproto_check_lib_detected" = "xno"; then
@@ -297,47 +252,51 @@ if test "x$was_libbiosproto_check_lib_detected" = "xno"; then
     LIBS="${libbiosproto_LIBS} ${LIBS}"
 fi
 
-
 CFLAGS="${PREVIOUS_CFLAGS}"
 LIBS="${PREVIOUS_LIBS}"
 
 # Platform specific checks
-uptime_on_mingw32="no"
-uptime_on_cygwin="no"
-uptime_on_android="no"
+kpi_uptime_on_mingw32="no"
+kpi_uptime_on_cygwin="no"
+kpi_uptime_on_android="no"
+kpi_uptime_on_linux="no"
+kpi_uptime_on_gnu="no"
 
 # Host specific checks
 AC_CANONICAL_HOST
 
-# Allow user to disable doc build
-AC_ARG_WITH([documentation], [AS_HELP_STRING([--without-documentation],
-    [disable documentation build even if asciidoc and xmlto are present [default=no]])])
+# Man pages are built/installed if asciidoc and xmlto are present
+#   --with-docs=no overrides this
+AC_ARG_WITH([docs],
+    AS_HELP_STRING([--with-docs],
+        [Build and install man pages [default=yes]]),
+    [with_docs=$withval])
 
-if test "x$with_documentation" = "xno"; then
-    uptime_build_doc="no"
-    uptime_install_man="no"
+if test "x$with_docs" = "xno"; then
+    kpi_uptime_build_doc="no"
+    kpi_uptime_install_man="no"
 else
     # Determine whether or not documentation should be built and installed.
-    uptime_build_doc="yes"
-    uptime_install_man="yes"
+    kpi_uptime_build_doc="yes"
+    kpi_uptime_install_man="yes"
 
     # Check for asciidoc and xmlto and don't build the docs if these are not installed.
-    AC_CHECK_PROG(uptime_have_asciidoc, asciidoc, yes, no)
-    AC_CHECK_PROG(uptime_have_xmlto, xmlto, yes, no)
-    if test "x$uptime_have_asciidoc" = "xno" -o "x$uptime_have_xmlto" = "xno"; then
-        uptime_build_doc="no"
+    AC_CHECK_PROG(kpi_uptime_have_asciidoc, asciidoc, yes, no)
+    AC_CHECK_PROG(kpi_uptime_have_xmlto, xmlto, yes, no)
+    if test "x$kpi_uptime_have_asciidoc" = "xno" -o "x$kpi_uptime_have_xmlto" = "xno"; then
+        kpi_uptime_build_doc="no"
         # Tarballs built with 'make dist' ship with prebuilt documentation.
-        if ! test -f doc/uptime.7; then
-            uptime_install_man="no"
-            AC_MSG_WARN([You are building an unreleased version of UPTIME and asciidoc or xmlto are not installed.])
+        if ! test -f doc/kpi_uptime.7; then
+            kpi_uptime_install_man="no"
+            AC_MSG_WARN([You are building an unreleased version of KPI-UPTIME and asciidoc or xmlto are not installed.])
             AC_MSG_WARN([Documentation will not be built and manual pages will not be installed.])
         fi
     fi
 fi
 AC_MSG_CHECKING([whether to build documentation])
-AC_MSG_RESULT([$uptime_build_doc])
+AC_MSG_RESULT([$kpi_uptime_build_doc])
 AC_MSG_CHECKING([whether to install manpages])
-AC_MSG_RESULT([$uptime_install_man])
+AC_MSG_RESULT([$kpi_uptime_install_man])
 
 # Set some default features required by libupt code.
 CPPFLAGS="-D_REENTRANT -D_THREAD_SAFE $CPPFLAGS"
@@ -347,67 +306,76 @@ case "${host_os}" in
     *linux*)
         # Define on Linux to enable all library features
         CPPFLAGS="-D_GNU_SOURCE -DLINUX $CPPFLAGS"
-        AC_DEFINE(UPTIME_HAVE_LINUX, 1, [Have Linux OS])
+        AC_DEFINE(UPT_HAVE_LINUX, 1, [Have Linux OS])
+        kpi_uptime_on_linux="yes"
 
         case "${host_os}" in
             *android*)
-                AC_DEFINE(UPTIME_HAVE_ANDROID, 1, [Have Android OS])
-                uptime_on_android="yes"
+                AC_DEFINE(UPT_HAVE_ANDROID, 1, [Have Android OS])
+                kpi_uptime_on_android="yes"
             ;;
         esac
         ;;
     *solaris*)
         # Define on Solaris to enable all library features
         CPPFLAGS="-D_PTHREADS $CPPFLAGS"
-        AC_DEFINE(UPTIME_HAVE_SOLARIS, 1, [Have Solaris OS])
+        AC_DEFINE(UPT_HAVE_SOLARIS, 1, [Have Solaris OS])
         CFLAGS="${CFLAGS} -lsocket -lssp"
         ;;
     *freebsd*)
         # Define on FreeBSD to enable all library features
         CPPFLAGS="-D__BSD_VISIBLE $CPPFLAGS"
-        AC_DEFINE(UPTIME_HAVE_FREEBSD, 1, [Have FreeBSD OS])
+        AC_DEFINE(UPT_HAVE_FREEBSD, 1, [Have FreeBSD OS])
         ;;
     *darwin*)
         # Define on Darwin to enable all library features
         CPPFLAGS="-D_DARWIN_C_SOURCE $CPPFLAGS"
-        AC_DEFINE(UPTIME_HAVE_OSX, 1, [Have DarwinOSX OS])
+        AC_DEFINE(UPT_HAVE_OSX, 1, [Have DarwinOSX OS])
         ;;
     *netbsd*)
         # Define on NetBSD to enable all library features
         CPPFLAGS="-D_NETBSD_SOURCE $CPPFLAGS"
-        AC_DEFINE(UPTIME_HAVE_NETBSD, 1, [Have NetBSD OS])
+        AC_DEFINE(UPT_HAVE_NETBSD, 1, [Have NetBSD OS])
         ;;
     *openbsd*)
         # Define on OpenBSD to enable all library features
         CPPFLAGS="-D_BSD_SOURCE $CPPFLAGS"
-        AC_DEFINE(UPTIME_HAVE_OPENBSD, 1, [Have OpenBSD OS])
+        AC_DEFINE(UPT_HAVE_OPENBSD, 1, [Have OpenBSD OS])
         ;;
     *nto-qnx*)
-        AC_DEFINE(UPTIME_HAVE_QNXNTO, 1, [Have QNX Neutrino OS])
+        AC_DEFINE(UPT_HAVE_QNXNTO, 1, [Have QNX Neutrino OS])
         ;;
     *aix*)
-        AC_DEFINE(UPTIME_HAVE_AIX, 1, [Have AIX OS])
+        AC_DEFINE(UPT_HAVE_AIX, 1, [Have AIX OS])
         ;;
     *hpux*)
         # Define on HP-UX to enable all library features
         CPPFLAGS="-D_POSIX_C_SOURCE=200112L"
-        AC_DEFINE(UPTIME_HAVE_HPUX, 1, [Have HPUX OS])
+        AC_DEFINE(UPT_HAVE_HPUX, 1, [Have HPUX OS])
         ;;
     *mingw32*)
-        AC_DEFINE(UPTIME_HAVE_WINDOWS, 1, [Have Windows OS])
-        AC_DEFINE(UPTIME_HAVE_MINGW32, 1, [Have MinGW32])
+        AC_DEFINE(UPT_HAVE_WINDOWS, 1, [Have Windows OS])
+        AC_DEFINE(UPT_HAVE_MINGW32, 1, [Have MinGW32])
         AC_CHECK_HEADERS(windows.h)
-        uptime_on_mingw32="yes"
-        uptime_install_man="no"
+        kpi_uptime_on_mingw32="yes"
+        kpi_uptime_install_man="no"
         ;;
     *cygwin*)
         # Define on Cygwin to enable all library features
         CPPFLAGS="-D_GNU_SOURCE $CPPFLAGS"
-        AC_DEFINE(UPTIME_HAVE_CYGWIN, 1, [Have Cygwin])
-        uptime_on_cygwin="yes"
+        AC_DEFINE(UPT_HAVE_CYGWIN, 1, [Have Cygwin])
+        kpi_uptime_on_cygwin="yes"
+        ;;
+    gnu*)
+        # Define on GNU/Hurd to enable all library features
+        if test "x$GXX" = "xyes"; then
+            CPPFLAGS="-D_GNU_SOURCE $CPPFLAGS"
+        fi
+        AC_DEFINE(UPT_HAVE_GNU, 1, [Have GNU/Hurd OS])
+        kpi_uptime_on_gnu="yes"
         ;;
     *)
-        AC_MSG_ERROR([unsupported system: ${host_os}.])
+        AC_MSG_ERROR([unsupported system: ${host_os}])
         ;;
 esac
 
@@ -441,31 +409,33 @@ if test "x$GCC" = "xyes"; then
 fi
 
 AM_CONDITIONAL(ENABLE_SHARED, test "x$enable_shared" = "xyes")
-AM_CONDITIONAL(ON_MINGW, test "x$uptime_on_mingw32" = "xyes")
-AM_CONDITIONAL(ON_CYGWIN, test "x$uptime_on_cygwin" = "xyes")
-AM_CONDITIONAL(ON_ANDROID, test "x$uptime_on_android" = "xyes")
-AM_CONDITIONAL(INSTALL_MAN, test "x$uptime_install_man" = "xyes")
-AM_CONDITIONAL(BUILD_DOC, test "x$uptime_build_doc" = "xyes")
+AM_CONDITIONAL(ON_MINGW, test "x$kpi_uptime_on_mingw32" = "xyes")
+AM_CONDITIONAL(ON_CYGWIN, test "x$kpi_uptime_on_cygwin" = "xyes")
+AM_CONDITIONAL(ON_ANDROID, test "x$kpi_uptime_on_android" = "xyes")
+AM_CONDITIONAL(ON_LINUX, test "x$kpi_uptime_on_linux" = "xyes")
+AM_CONDITIONAL(ON_GNU, test "x$kpi_uptime_on_gnu" = "xyes")
+AM_CONDITIONAL(INSTALL_MAN, test "x$kpi_uptime_install_man" = "xyes")
+AM_CONDITIONAL(BUILD_DOC, test "x$kpi_uptime_build_doc" = "xyes")
 
 # Check for kpi-uptime intent
-AC_ARG_WITH([kpi-uptime],
-    AS_HELP_STRING([--with-kpi-uptime],
-        [Compile and install the kpi-uptime program [default=yes].]),
-    [with_kpi_uptime=$withval],
-    [with_kpi_uptime=yes])
+AC_ARG_ENABLE([kpi-uptime],
+    AS_HELP_STRING([--enable-kpi-uptime],
+        [Compile and install 'kpi-uptime' [default=yes]]),
+    [enable_kpi_uptime=$enableval],
+    [enable_kpi_uptime=yes])
 
-AM_CONDITIONAL([WITH_KPI_UPTIME], [test x$with_kpi_uptime != xno])
-AM_COND_IF([WITH_KPI_UPTIME], [AC_MSG_NOTICE([WITH_KPI_UPTIME defined])])
+AM_CONDITIONAL([ENABLE_KPI_UPTIME], [test x$enable_kpi_uptime != xno])
+AM_COND_IF([ENABLE_KPI_UPTIME], [AC_MSG_NOTICE([ENABLE_KPI_UPTIME defined])])
 
 # Check for upt_selftest intent
-AC_ARG_WITH([upt_selftest],
-    AS_HELP_STRING([--with-upt_selftest],
-        [Compile the upt_selftest program [default=yes].]),
-    [with_upt_selftest=$withval],
-    [with_upt_selftest=yes])
+AC_ARG_ENABLE([upt_selftest],
+    AS_HELP_STRING([--enable-upt_selftest],
+        [Compile 'upt_selftest' in src [default=yes]]),
+    [enable_upt_selftest=$enableval],
+    [enable_upt_selftest=yes])
 
-AM_CONDITIONAL([WITH_UPT_SELFTEST], [test x$with_upt_selftest != xno])
-AM_COND_IF([WITH_UPT_SELFTEST], [AC_MSG_NOTICE([WITH_UPT_SELFTEST defined])])
+AM_CONDITIONAL([ENABLE_UPT_SELFTEST], [test x$enable_upt_selftest != xno])
+AM_COND_IF([ENABLE_UPT_SELFTEST], [AC_MSG_NOTICE([ENABLE_UPT_SELFTEST defined])])
 
 # Checks for library functions.
 AC_TYPE_SIGNAL
@@ -478,20 +448,32 @@ AC_ARG_WITH([pkgconfigdir], AS_HELP_STRING([--with-pkgconfigdir=PATH],
 AC_SUBST([pkgconfigdir])
 
 
-
 # enable specific system integration features
-AC_ARG_WITH([systemd],
-    AS_HELP_STRING([--with-systemd],
-    [Build and install with systemd integration [default=no].]),
-    [with_systemd=$withval],
-    [with_systemd=no])
+AC_ARG_WITH([systemd-units],
+    AS_HELP_STRING([--with-systemd-units],
+    [Build and install with systemd units integration [default=no]]),
+    [with_systemd_units=$withval],
+    [with_systemd_units=no])
 
-AM_CONDITIONAL([WITH_SYSTEMD], [test x$with_systemd != xno])
+AM_CONDITIONAL([WITH_SYSTEMD_UNITS], [test x$with_systemd_units != xno])
 
-AM_COND_IF([WITH_SYSTEMD],
-    [PKG_CHECK_MODULES([SYSTEMD], [systemd >= 200], [],
-        [AC_MSG_ERROR([Cannot find required package for systemd. Note, pkg-config is required due to specified version >= 200])])],
+AM_COND_IF([WITH_SYSTEMD_UNITS],
+    [AC_DEFINE(WITH_SYSTEMD_UNITS, 1, [systemd units are going to be installed])
+    AC_SUBST(WITH_SYSTEMD_UNITS)],
     [])
+
+#   Project has no stable classes so enable draft API by default
+enable_drafts=yes
+AM_CONDITIONAL([ENABLE_DRAFTS], [test x$enable_drafts != xno])
+
+if test "x$enable_drafts" = "xyes"; then
+    AC_MSG_NOTICE([Building stable and legacy API + draft API])
+    AC_DEFINE(UPT_BUILD_DRAFT_API, 1, [Provide draft classes and methods])
+    AC_SUBST(pkg_config_defines, "-DUPT_BUILD_DRAFT_API=1")
+else
+    AC_MSG_NOTICE([Building stable and legacy API (no draft API)])
+    AC_SUBST(pkg_config_defines, "")
+fi
 
 # Specify output files
 AC_CONFIG_FILES([Makefile
@@ -499,7 +481,7 @@ AC_CONFIG_FILES([Makefile
                  src/libupt.pc
                  ])
 
-AM_COND_IF([WITH_SYSTEMD],
+AM_COND_IF([WITH_SYSTEMD_UNITS],
     [AC_CONFIG_FILES([
                  src/kpi-uptime.service
                  src/kpi-uptime.conf

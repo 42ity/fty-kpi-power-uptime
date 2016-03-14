@@ -26,11 +26,24 @@
 #ifndef UPT_CLASSES_H_INCLUDED
 #define UPT_CLASSES_H_INCLUDED
 
+//  Platform definitions, must come first
+#include "platform.h"
+
 //  External API
-#include "../include/uptime.h"
+#include "../include/kpi_uptime.h"
 
 //  Internal API
 #include "dc.h"
 #include "upt.h"
+
+//  *** Draft method, defined for internal use only ***
+//  Self test of this class.
+UPT_EXPORT void
+    dc_test (bool verbose);
+
+//  *** Draft method, defined for internal use only ***
+//  Self test of this class.
+UPT_EXPORT void
+    upt_test (bool verbose);
 
 #endif

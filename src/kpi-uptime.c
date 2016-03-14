@@ -38,9 +38,9 @@ int main(int argc, char**argv) {
     }
     zstr_sendx (server, "CONNECT", endpoint, NULL);
     zsock_wait (server);
-    zstr_sendx (server, "CONSUMER", "METRICS", "status.ups.*", NULL);
-    zsock_wait (server);
     zstr_sendx (server, "CONFIG", dir, NULL);
+    zsock_wait (server);
+    zstr_sendx (server, "CONSUMER", "METRICS", "status.ups.*", NULL);
     zsock_wait (server);
 
     //  Accept and print any message back from server

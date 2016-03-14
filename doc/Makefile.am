@@ -4,7 +4,7 @@
 ################################################################################
 MAN1 = kpi_uptime.1
 MAN3 = upt_server.3
-MAN7 = uptime.7
+MAN7 = 
 MAN_DOC = $(MAN1) $(MAN3) $(MAN7)
 
 MAN_TXT = $(MAN1:%.1=%.txt)
@@ -26,7 +26,7 @@ SUFFIXES=.txt .xml .1 .3 .7
 
 .txt.xml:
 	asciidoc -d manpage -b docbook -f $(srcdir)/asciidoc.conf \
-        -auptime_version=@PACKAGE_VERSION@ -o$@ $<
+        -akpi_uptime_version=@PACKAGE_VERSION@ -o$@ $<
 .xml.1:
 	xmlto man $<
 .xml.3:
@@ -39,7 +39,7 @@ upt_server.txt:
 kpi_uptime.txt:
 	./mkman $@
 clean:
-	rm -f *.1 *.3
+	rm -f *.1 *.3 *.7
 	./mkman upt_server kpi_uptime 
 endif
 ################################################################################

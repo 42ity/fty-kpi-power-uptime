@@ -1,5 +1,5 @@
 /*  =========================================================================
-    uptime - UPTIME wrapper
+    kpi-uptime - generated layer of public API
 
     Copyright (C) 2014 - 2015 Eaton                                        
                                                                            
@@ -34,21 +34,20 @@
 #include <malamute.h>
 #include <biosproto.h>
 
-//  UPTIME version macros for compile-time API detection
+//  UPT version macros for compile-time API detection
+#define UPT_VERSION_MAJOR 0
+#define UPT_VERSION_MINOR 0
+#define UPT_VERSION_PATCH 0
 
-#define UPTIME_VERSION_MAJOR 0
-#define UPTIME_VERSION_MINOR 0
-#define UPTIME_VERSION_PATCH 0
-
-#define UPTIME_MAKE_VERSION(major, minor, patch) \
+#define UPT_MAKE_VERSION(major, minor, patch) \
     ((major) * 10000 + (minor) * 100 + (patch))
-#define UPTIME_VERSION \
-    UPTIME_MAKE_VERSION(UPTIME_VERSION_MAJOR, UPTIME_VERSION_MINOR, UPTIME_VERSION_PATCH)
+#define UPT_VERSION \
+    UPT_MAKE_VERSION(UPT_VERSION_MAJOR, UPT_VERSION_MINOR, UPT_VERSION_PATCH)
 
 #if defined (__WINDOWS__)
-#   if defined LIBUPT_STATIC
+#   if defined UPT_STATIC
 #       define UPT_EXPORT
-#   elif defined LIBUPT_EXPORTS
+#   elif defined UPT_EXPORTS
 #       define UPT_EXPORT __declspec(dllexport)
 #   else
 #       define UPT_EXPORT __declspec(dllimport)
@@ -57,13 +56,23 @@
 #   define UPT_EXPORT
 #endif
 
+//  Project has no stable classes, so we build the draft API
+#undef  UPT_BUILD_DRAFT_API
+#define UPT_BUILD_DRAFT_API
+
 //  Opaque class structures to allow forward references
+//  These classes are stable or legacy and built in all releases
+//  Draft classes are by default not built in stable releases
+#ifdef UPT_BUILD_DRAFT_API
 typedef struct _upt_server_t upt_server_t;
 #define UPT_SERVER_T_DEFINED
+#endif // UPT_BUILD_DRAFT_API
 
 
-//  Public API classes
+//  Public classes, each with its own header file
+#ifdef UPT_BUILD_DRAFT_API
 #include "upt_server.h"
+#endif // UPT_BUILD_DRAFT_API
 
 #endif
 /*

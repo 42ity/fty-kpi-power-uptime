@@ -38,7 +38,9 @@ static test_item_t
 all_tests [] = {
     { "dc", dc_test },
     { "upt", upt_test },
+#ifdef UPT_BUILD_DRAFT_API
     { "upt_server", upt_server_test },
+#endif // UPT_BUILD_DRAFT_API
     {0, 0}          //  Sentinel
 };
 
@@ -66,7 +68,7 @@ static void
 test_runall (bool verbose)
 {
     test_item_t *item;
-    printf ("Running uptime selftests...\n");
+    printf ("Running kpi-uptime selftests...\n");
     for (item = all_tests; item->test; item++)
         item->test (verbose);
 
@@ -136,7 +138,7 @@ main (int argc, char **argv)
         }
     }
     if (test) {
-        printf ("Running uptime test '%s'...\n", test->testname);
+        printf ("Running kpi-uptime test '%s'...\n", test->testname);
         test->test (verbose);
     }
     else

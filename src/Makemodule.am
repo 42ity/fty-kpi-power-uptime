@@ -57,7 +57,6 @@ bin_PROGRAMS += src/kpi-uptime
 src_kpi_uptime_CPPFLAGS = ${AM_CPPFLAGS}
 src_kpi_uptime_LDADD = ${program_libs}
 src_kpi_uptime_SOURCES = src/kpi_uptime.c
-src_kpi_uptime_configdir = $(sysconfdir)/kpi-uptime
 if WITH_SYSTEMD_UNITS
 src_kpi_uptime_servicedir = @prefix@/lib/systemd/system
 src_kpi_uptime_service_DATA = src/kpi-uptime.service

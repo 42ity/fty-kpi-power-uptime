@@ -1,5 +1,5 @@
 #
-#    uptime - Compute Data Center uptime
+#    kpi-uptime - Compute Data Center uptime
 #
 #    Copyright (C) 2014 - 2015 Eaton                                        
 #                                                                           
@@ -17,18 +17,14 @@
 #    with this program; if not, write to the Free Software Foundation, Inc.,
 #    51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.            
 
-Source:         uptime
+Source:         kpi-uptime
 Section:        net
 Priority:       optional
-Maintainer:     John Doe <John.Doe@example.com>
-Uploaders:      John Doe <John.Doe@example.com>
-Standards-Version: 3.9.5
-Build-Depends: bison, debhelper (>= 8),
+Maintainer:     kpi-uptime Developers <email@hostname.com>
+Standards-Version: 3.9.7
+Build-Depends: debhelper (>= 9),
     pkg-config,
-    automake,
-    autoconf,
-    libtool,
-    libsodium-dev,
+    dh-autoreconf,
     libzmq4-dev,
     libczmq-dev,
     libmlm-dev,
@@ -39,35 +35,34 @@ Build-Depends: bison, debhelper (>= 8),
 Package: libupt0
 Architecture: any
 Depends: ${shlibs:Depends}, ${misc:Depends}
-Description: uptime
- This package contains shared library for uptime: compute data center uptime
+Description: kpi-uptime
+ This package contains shared library for kpi-uptime: compute data center uptime
 
-Package: uptime-dev
-Architecture: all
+Package: libupt-dev
+Architecture: any
 Section: libdevel
 Depends:
-    libsodium-dev,
     libzmq4-dev,
     libczmq-dev,
     libmlm-dev,
     libbiosproto-dev,
     libupt0 (= ${binary:Version})
-Description: development files for uptime
- This package contains development files for uptime: compute data center uptime
+Description: development files for kpi-uptime
+ This package contains development files for kpi-uptime: compute data center uptime
 
-Package: uptime
+Package: kpi-uptime
 Architecture: any
 Depends: ${misc:Depends}, ${shlibs:Depends}
 Description: compute data center uptime
- Main package for uptime: compute data center uptime
+ Main package for kpi-uptime: compute data center uptime
 
-Package: uptime-dbg
+Package: kpi-uptime-dbg
 Architecture: any
 Section: debug
 Priority: extra
 Depends:
-    uptime (= ${binary:Version}),
+    kpi-uptime (= ${binary:Version}),
     ${misc:Depends}
-Description: debugging symbols for uptime
- This package contains the debugging symbols for uptime : compute data center uptime.
+Description: debugging symbols for kpi-uptime
+ This package contains the debugging symbols for kpi-uptime : compute data center uptime.
 

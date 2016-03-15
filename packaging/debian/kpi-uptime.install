@@ -1,0 +1,2 @@
+usr/bin/kpi-uptime
+usr/lib/systemd/system/kpi-uptime*.service

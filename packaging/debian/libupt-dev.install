@@ -1,0 +1,3 @@
+usr/include/*
+usr/lib/*/libupt.so
+usr/lib/*/pkgconfig/libupt.pc

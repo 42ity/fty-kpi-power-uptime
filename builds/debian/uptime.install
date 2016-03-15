@@ -1,5 +1,0 @@
-debian/tmp/usr/bin/kpi-uptime
-debian/tmp/usr/lib/systemd/system/kpi-uptime*.service
-
-debian/tmp//usr/lib/tmpfiles.d/kpi-uptime.conf
-

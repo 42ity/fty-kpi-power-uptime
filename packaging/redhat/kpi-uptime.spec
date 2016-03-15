@@ -1,5 +1,5 @@
 #
-#    uptime - Compute Data Center uptime
+#    kpi-uptime - Compute Data Center uptime
 #
 #    Copyright (C) 2014 - 2015 Eaton                                        
 #                                                                           
@@ -18,7 +18,7 @@
 #    51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.            
 #
 
-Name:           uptime
+Name:           kpi-uptime
 Version:        0.0.0
 Release:        1
 Summary:        compute data center uptime
@@ -31,7 +31,6 @@ BuildRequires:  autoconf
 BuildRequires:  libtool
 BuildRequires:  pkg-config
 BuildRequires:  systemd-devel
-BuildRequires:  libsodium-devel
 BuildRequires:  zeromq-devel
 BuildRequires:  czmq-devel
 BuildRequires:  malamute-devel
@@ -39,14 +38,14 @@ BuildRequires:  libbiosproto-devel
 BuildRoot:      %{_tmppath}/%{name}-%{version}-build
 
 %description
-uptime compute data center uptime.
+kpi-uptime compute data center uptime.
 
 %package -n libupt0
 Group:          System/Libraries
 Summary:        compute data center uptime
 
 %description -n libupt0
-uptime compute data center uptime.
+kpi-uptime compute data center uptime.
 This package contains shared library.
 
 %post -n libupt0 -p /sbin/ldconfig
@@ -61,14 +60,13 @@ This package contains shared library.
 Summary:        compute data center uptime
 Group:          System/Libraries
 Requires:       libupt0 = %{version}
-Requires:       libsodium-devel
 Requires:       zeromq-devel
 Requires:       czmq-devel
 Requires:       malamute-devel
 Requires:       libbiosproto-devel
 
 %description devel
-uptime compute data center uptime.
+kpi-uptime compute data center uptime.
 This package contains development files.
 
 %files devel
@@ -82,7 +80,7 @@ This package contains development files.
 
 %build
 sh autogen.sh
-%{configure} --with-systemd
+%{configure} --with-systemd-units
 make %{_smp_mflags}
 
 %install
@@ -98,8 +96,5 @@ find %{buildroot} -name '*.la' | xargs rm -f
 %{_bindir}/kpi-uptime
 %{_prefix}/lib/systemd/system/kpi-uptime*.service
 
-#file for type systemd-tmpfiles
-%dir /usr/lib/tmpfiles.d
-/usr/lib/tmpfiles.d/kpi-uptime.conf
 
 %changelog

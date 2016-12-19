@@ -1,5 +1,5 @@
 /*  =========================================================================
-    kpi_uptime - Main daemon
+    fty_kpi_power_uptime - Main daemon
 
     Copyright (C) 2014 - 2015 Eaton                                        
                                                                            
@@ -21,12 +21,12 @@
 
 /*
 @header
-    kpi_uptime - Main daemon
+    fty_kpi_power_uptime - Main daemon
 @discuss
 @end
 */
 
-#include "upt_classes.h"
+#include "fty_kpi_power_uptime_classes.h"
 
 int main (int argc, char *argv [])
 {
@@ -35,7 +35,7 @@ int main (int argc, char *argv [])
     for (argn = 1; argn < argc; argn++) {
         if (streq (argv [argn], "--help")
         ||  streq (argv [argn], "-h")) {
-            puts ("kpi-uptime [options] ...");
+            puts ("fty-kpi-power-uptime [options] ...");
             puts ("  --verbose / -v         verbose test output");
             puts ("  --help / -h            this information");
             return 0;
@@ -49,23 +49,15 @@ int main (int argc, char *argv [])
             return 1;
         }
     }
-
-    char *bios_log_level = getenv ("BIOS_LOG_LEVEL");
-    if (bios_log_level
-       && streq (bios_log_level, "LOG_DEBUG")) {
-        verbose = true;
-    }
-
     //  Insert main code here
     if (verbose)
-        zsys_info ("kpi_uptime - Main daemon");
-
+        zsys_info ("fty_kpi_power_uptime - Main daemon");
     static const char* endpoint = "ipc://@/malamute";
     //XXX: this comes from old project name - uptime. Don't change if you're not
     //     willing to maintain code which moves things from old path :)
     static const char* dir = "/var/lib/bios/uptime/";
 
-    zactor_t *server = zactor_new (upt_server, "uptime");
+    zactor_t *server = zactor_new (fty_kpi_power_uptime_server, "uptime");
     if (verbose) {
         zstr_sendx (server, "VERBOSE", NULL);
         zsock_wait (server);

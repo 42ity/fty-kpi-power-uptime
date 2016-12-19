@@ -32,7 +32,7 @@ Name:           fty-kpi-power-uptime
 Version:        0.0.0
 Release:        1
 Summary:        compute data center uptime
-License:        MIT
+License:        GPL-2.0+
 URL:            http://example.com/
 Source0:        %{name}-%{version}.tar.gz
 Group:          System/Libraries

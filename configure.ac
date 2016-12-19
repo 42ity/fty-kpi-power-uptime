@@ -7,7 +7,7 @@
 # Process this file with autoconf to produce a configure script.
 AC_PREREQ(2.61)
 #
-AC_INIT([fty-kpi-power-uptime],[0.0.0],[email@hostname.com])
+AC_INIT([fty-kpi-power-uptime],[0.0.0],[eatonipcopensource@eaton.com])
 
 AC_CONFIG_AUX_DIR(config)
 AC_CONFIG_MACRO_DIR(config)
@@ -218,44 +218,12 @@ fi
 
 was_fty_proto_check_lib_detected=no
 
-PKG_CHECK_MODULES([fty_proto], [libfty_proto >= 0.0.0],
+PKG_CHECK_MODULES([fty_proto], [libfty_proto >= 1.0.0],
     [
         PKGCFG_LIBS_PRIVATE="$PKGCFG_LIBS_PRIVATE $fty_proto_LIBS"
     ],
     [
-        AC_ARG_WITH([libfty_proto],
-            [
-                AS_HELP_STRING([--with-libfty_proto],
-                [Specify libfty_proto prefix])
-            ],
-            [search_libfty_proto="yes"],
-            [])
-
-        fty_proto_synthetic_cflags=""
-        fty_proto_synthetic_libs="-lfty_proto"
-
-        if test "x$search_libfty_proto" = "xyes"; then
-            if test -r "${with_libfty_proto}/include/fty_proto.h"; then
-                fty_proto_synthetic_cflags="-I${with_libfty_proto}/include"
-                fty_proto_synthetic_libs="-L${with_libfty_proto}/lib -lfty_proto"
-            else
-                AC_MSG_ERROR([${with_libfty_proto}/include/fty_proto.h not found. Please check libfty_proto prefix])
-            fi
-        fi
-
-
-        AC_CHECK_LIB([fty_proto], [fty_proto_test],
-            [
-                CFLAGS="${fty_proto_synthetic_cflags} ${CFLAGS}"
-                LDFLAGS="${fty_proto_synthetic_libs} ${LDFLAGS}"
-                LIBS="${fty_proto_synthetic_libs} ${LIBS}"
-
-                AC_SUBST([fty_proto_CFLAGS],[${fty_proto_synthetic_cflags}])
-                AC_SUBST([fty_proto_LIBS],[${fty_proto_synthetic_libs}])
-                was_fty_proto_check_lib_detected=yes
-                PKGCFG_LIBS_PRIVATE="$PKGCFG_LIBS_PRIVATE -lfty_proto"
-            ],
-            [AC_MSG_ERROR([cannot link with -lfty_proto, install libfty_proto])])
+        AC_MSG_ERROR([Cannot find libfty_proto 1.0.0 or higher])
     ])
 
 if test "x$was_fty_proto_check_lib_detected" = "xno"; then

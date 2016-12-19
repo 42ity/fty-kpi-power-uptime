@@ -1,0 +1,25 @@
+Name(7)
+=======
+
+
+NAME
+----
+fty_kpi_power_uptime - Compute Data Center uptime
+
+
+SYNOPSIS
+--------
+----
+#include <fty_kpi_power_uptime.h>
+
+cc ['flags'] 'files' -lfty_kpi_power_uptime ['libraries']
+----
+
+
+DESCRIPTION
+-----------
+
+Classes
+~~~~~~~
+
+Something.

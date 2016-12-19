@@ -30,15 +30,15 @@ typedef struct _upt_t upt_t;
 
 //  @interface
 //  Create a new upt
-UPT_EXPORT upt_t *
+FTY_KPI_POWER_UPTIME_EXPORT upt_t *
     upt_new (void);
 
 //  Destroy the upt
-UPT_EXPORT void
+FTY_KPI_POWER_UPTIME_EXPORT void
     upt_destroy (upt_t **self_p);
 
 //  Print properties of object
-UPT_EXPORT void
+FTY_KPI_POWER_UPTIME_EXPORT void
     upt_print (upt_t *self);
 
 int
@@ -63,15 +63,15 @@ int
 int
     upt_save (upt_t *self, FILE* fp);
 
-UPT_EXPORT void
+FTY_KPI_POWER_UPTIME_EXPORT void
     upt_print (upt_t* self);
 
 // load upt_t from file
-UPT_EXPORT upt_t*
+FTY_KPI_POWER_UPTIME_EXPORT upt_t*
     upt_load (FILE* fp);
 
 //  Self test of this class
-UPT_EXPORT void
+FTY_KPI_POWER_UPTIME_EXPORT void
     upt_test (bool verbose);
 //  @end
 

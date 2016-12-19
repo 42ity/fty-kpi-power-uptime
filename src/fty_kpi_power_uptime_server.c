@@ -1,5 +1,5 @@
 /*  =========================================================================
-    upt_server - Actor computing uptime
+    fty_kpi_power_uptime_server - Actor computing uptime
 
     Copyright (C) 2014 - 2015 Eaton                                        
                                                                            
@@ -21,15 +21,16 @@
 
 /*
 @header
-    upt_server - Actor computing uptime
+    fty_kpi_power_uptime_server - Actor computing uptime
 @discuss
 @end
 */
 
-#include "upt_classes.h"
+#include "fty_kpi_power_uptime_classes.h"
 
-//TODO: should not be mlm_client_t a part of upt_server_t???
-struct _upt_server_t {
+//  Structure of our class
+
+struct _fty_kpi_power_uptime_server_t {
     bool verbose;
     int request_counter;
     upt_t *upt;
@@ -37,30 +38,35 @@ struct _upt_server_t {
     char *name;
 };
 
-//  Create a new upt_server
-UPT_EXPORT upt_server_t *
-    upt_server_new (void)
+
+//  --------------------------------------------------------------------------
+//  Create a new fty_kpi_power_uptime_server
+
+FTY_KPI_POWER_UPTIME_EXPORT fty_kpi_power_uptime_server_t *
+fty_kpi_power_uptime_server_new (void)
 {
-    upt_server_t *server = (upt_server_t*) zmalloc (sizeof (upt_server_t));
-    if (!server)
-        return NULL;
-
-    server->verbose = false;
-    server->request_counter = 0;
-    server->upt = upt_new ();
-    server->name = strdup ("uptime");
-
-    return server;
+    fty_kpi_power_uptime_server_t *self = (fty_kpi_power_uptime_server_t *) zmalloc (sizeof (fty_kpi_power_uptime_server_t));
+    assert (self);
+   
+    self->verbose = false;
+    self->request_counter = 0;
+    self->upt = upt_new ();
+    self->name = strdup ("uptime");
+    
+    return self;
 }
 
-//  Destroy the upt_server
-UPT_EXPORT void
-    upt_server_destroy (upt_server_t **self_p)
+
+//  --------------------------------------------------------------------------
+//  Destroy the fty_kpi_power_uptime_server
+
+FTY_KPI_POWER_UPTIME_EXPORT void
+fty_kpi_power_uptime_server_destroy (fty_kpi_power_uptime_server_t **self_p)
 {
     if (!self_p || !*self_p)
         return;
 
-    upt_server_t *self = *self_p;
+    fty_kpi_power_uptime_server_t *self = *self_p;
     upt_destroy (&self->upt);
     zstr_free (&self->dir);
     zstr_free (&self->name);
@@ -69,16 +75,16 @@ UPT_EXPORT void
 }
 
 //  Set server verbose
-UPT_EXPORT void
-    upt_server_verbose (upt_server_t *self)
+FTY_KPI_POWER_UPTIME_EXPORT  void
+    fty_kpi_power_uptime_server_verbose (fty_kpi_power_uptime_server_t *self)
 {
     assert (self);
     self->verbose = true;
 }
 
 // SET the DIR
-UPT_EXPORT void
-    upt_server_set_dir (upt_server_t *self, const char* dir)
+FTY_KPI_POWER_UPTIME_EXPORT  void
+    fty_kpi_power_uptime_server_set_dir (fty_kpi_power_uptime_server_t *self, const char* dir)
 {
     assert (self);
     assert (dir);
@@ -88,7 +94,7 @@ UPT_EXPORT void
 }
 
 int
-    upt_server_load_state (upt_server_t *self)
+    fty_kpi_power_uptime_server_load_state (fty_kpi_power_uptime_server_t *self)
 {
     assert (self);
     assert (self->dir);
@@ -127,7 +133,7 @@ int
 }
 
 int
-    upt_server_save_state (upt_server_t *self)
+    fty_kpi_power_uptime_server_save_state (fty_kpi_power_uptime_server_t *self)
 {
     assert (self);
     if (!self->dir) {
@@ -182,7 +188,7 @@ s_str_destructor (void **x)
 }
 
 static void
-s_handle_set (upt_server_t *server, mlm_client_t *client, zmsg_t *msg)
+s_handle_set (fty_kpi_power_uptime_server_t *server, mlm_client_t *client, zmsg_t *msg)
 {
     char *dc_name = zmsg_popstr (msg);
     if (!dc_name) {
@@ -215,7 +221,7 @@ s_handle_set (upt_server_t *server, mlm_client_t *client, zmsg_t *msg)
 }
 
 static void
-s_handle_uptime (upt_server_t *server, mlm_client_t *client, zmsg_t *msg)
+s_handle_uptime (fty_kpi_power_uptime_server_t *server, mlm_client_t *client, zmsg_t *msg)
 {
     int r;
     char *dc_name = zmsg_popstr (msg);
@@ -275,9 +281,9 @@ s_handle_uptime (upt_server_t *server, mlm_client_t *client, zmsg_t *msg)
 }
 
 static bool
-s_ups_is_onbattery (bios_proto_t *msg)
+s_ups_is_onbattery (fty_proto_t *msg)
 {
-    const char *state = bios_proto_value (msg);
+    const char *state = fty_proto_value (msg);
     if (isdigit (state[0])) {
         // see core.git/src/shared/upsstatus.h STATUS_OB == 1 << 4 == 16
         int istate = atoi (state);
@@ -289,9 +295,9 @@ s_ups_is_onbattery (bios_proto_t *msg)
 }
 
 static void
-s_handle_metric (upt_server_t *server, mlm_client_t *client, bios_proto_t *msg)
+s_handle_metric (fty_kpi_power_uptime_server_t *server, mlm_client_t *client, fty_proto_t *msg)
 {
-    const char *ups_name = bios_proto_element_src (msg);
+    const char *ups_name = fty_proto_element_src (msg);
     const char *dc_name = upt_dc_name (server->upt, ups_name);
 
     if (!dc_name)
@@ -308,12 +314,12 @@ s_handle_metric (upt_server_t *server, mlm_client_t *client, bios_proto_t *msg)
 }
 
 //  Server as an actor
-void upt_server (zsock_t *pipe, void *args)
+void fty_kpi_power_uptime_server (zsock_t *pipe, void *args)
 {
     int ret;
     char *name = (char*) args;
     mlm_client_t *client = mlm_client_new ();
-    upt_server_t *server = upt_server_new ();
+    fty_kpi_power_uptime_server_t *server = fty_kpi_power_uptime_server_new ();
     //FIXME: change constructor or add set_name method ...
     zstr_free (&server->name);
     server->name = strdup (name);
@@ -345,7 +351,7 @@ void upt_server (zsock_t *pipe, void *args)
             }
             else
             if (streq (cmd, "VERBOSE")) {
-                upt_server_verbose (server);
+                fty_kpi_power_uptime_server_verbose (server);
                 zmsg_destroy (&msg);
                 zsock_signal (pipe, 0);
             }
@@ -375,8 +381,8 @@ void upt_server (zsock_t *pipe, void *args)
                 if (!dir)
                     zsys_error ("%s: CONFIG: directory is null", name);
                 else {
-                    upt_server_set_dir (server, dir);
-                    int r = upt_server_load_state (server);
+                    fty_kpi_power_uptime_server_set_dir (server, dir);
+                    int r = fty_kpi_power_uptime_server_load_state (server);
                     if (server->verbose)
                         upt_print (server->upt);
                     if (r == -1)
@@ -406,7 +412,7 @@ void upt_server (zsock_t *pipe, void *args)
         {
             if (server->verbose)
                 zsys_debug ("%s: saving the state", name);
-            upt_server_save_state (server);
+            fty_kpi_power_uptime_server_save_state (server);
         }
 
         if (streq (mlm_client_command (client), "MAILBOX DELIVER"))
@@ -448,38 +454,39 @@ void upt_server (zsock_t *pipe, void *args)
         else
         if (streq (mlm_client_command (client), "STREAM DELIVER"))
         {
-            bios_proto_t *bmsg = bios_proto_decode (&msg);
+            fty_proto_t *bmsg = fty_proto_decode (&msg);
             if (!bmsg) {
-                zsys_warning ("Not bios proto, skipping");
+                zsys_warning ("Not fty proto, skipping");
             }
             else
-            if (bios_proto_id (bmsg) != BIOS_PROTO_METRIC) {
-                zsys_warning ("Not bios proto metric, skipping");
+            if (fty_proto_id (bmsg) != FTY_PROTO_METRIC) {
+                zsys_warning ("Not fty proto metric, skipping");
             }
             else {
                 s_handle_metric (server, client, bmsg);
             }
-            bios_proto_destroy (&bmsg);
+            fty_proto_destroy (&bmsg);
         }
 
         zmsg_destroy (&msg);
     }
 exit:
-    ret = upt_server_save_state (server);
+    ret = fty_kpi_power_uptime_server_save_state (server);
     if (ret != 0)
         zsys_error ("failed to save state to %s", server->dir);
     zpoller_destroy (&poller);
     mlm_client_destroy (&client);
-    upt_server_destroy (&server);
+    fty_kpi_power_uptime_server_destroy (&server);
 }
 
+
 //  --------------------------------------------------------------------------
-//  Self test of this class.
+//  Self test of this class
 
 void
-upt_server_test (bool verbose)
+fty_kpi_power_uptime_server_test (bool verbose)
 {
-    printf (" * upt_server: ");
+    printf (" * fty_kpi_power_uptime_server: ");
     if (verbose)
         printf ("\n");
 
@@ -497,7 +504,7 @@ upt_server_test (bool verbose)
     mlm_client_connect (ups, endpoint, 1000, "UPS");
     mlm_client_set_producer (ups, "METRICS");
 
-    zactor_t *server = zactor_new (upt_server, (void*) "uptime");
+    zactor_t *server = zactor_new (fty_kpi_power_uptime_server, (void*) "uptime");
     if (verbose) {
         zstr_send (server, "VERBOSE");
         zsock_wait (server);
@@ -544,7 +551,7 @@ upt_server_test (bool verbose)
     zstr_free (&offline);
 
     // put ups to onbattery
-    zmsg_t *metric = bios_proto_encode_metric (NULL,
+    zmsg_t *metric = fty_proto_encode_metric (NULL,
             "status.ups", "UPS007", "16", "", time (NULL));
     mlm_client_send (ups, "status.ups@UPS007", &metric);
 
@@ -598,17 +605,17 @@ upt_server_test (bool verbose)
     zactor_destroy (&broker);
 
     // test for private function only!! UGLY REDONE DO NOT READ!!
-    upt_server_t *s = upt_server_new ();
-    upt_server_set_dir (s, "src");
-    r = upt_server_load_state (s);
+    fty_kpi_power_uptime_server_t *s = fty_kpi_power_uptime_server_new ();
+    fty_kpi_power_uptime_server_set_dir (s, "src");
+    r = fty_kpi_power_uptime_server_load_state (s);
     assert (r == 0);
 
     r = unlink ("src/state");
     assert (r == 0);
-    r = upt_server_load_state (s);
+    r = fty_kpi_power_uptime_server_load_state (s);
     assert (r == -2);
 
-    upt_server_destroy (&s);
+    fty_kpi_power_uptime_server_destroy (&s);
     //  @end
 
     printf ("OK\n");

@@ -26,7 +26,7 @@
 @end
 */
 
-#include "upt_classes.h"
+#include "fty_kpi_power_uptime_classes.h"
 
 struct _dc_t {
     int64_t last_update;

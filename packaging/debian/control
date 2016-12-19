@@ -1,5 +1,5 @@
 #
-#    kpi-uptime - Compute Data Center uptime
+#    fty-kpi-power-uptime - Compute Data Center uptime
 #
 #    Copyright (C) 2014 - 2015 Eaton                                        
 #                                                                           
@@ -17,52 +17,54 @@
 #    with this program; if not, write to the Free Software Foundation, Inc.,
 #    51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.            
 
-Source:         kpi-uptime
+Source:         fty-kpi-power-uptime
 Section:        net
 Priority:       optional
-Maintainer:     kpi-uptime Developers <email@hostname.com>
+Maintainer:     fty-kpi-power-uptime Developers <email@hostname.com>
 Standards-Version: 3.9.7
 Build-Depends: debhelper (>= 9),
     pkg-config,
     dh-autoreconf,
-    libzmq4-dev,
+    libzmq3-dev,
     libczmq-dev,
     libmlm-dev,
-    libbiosproto-dev,
-    dh-autoreconf,
-    systemd
+    libfty-proto-dev,
+    systemd,
+    dh-systemd,
+Build-Depends-Indep: asciidoc,
+                     xmlto
 
-Package: libupt0
+Package: libfty-kpi-power-uptime0
 Architecture: any
 Depends: ${shlibs:Depends}, ${misc:Depends}
-Description: kpi-uptime
- This package contains shared library for kpi-uptime: compute data center uptime
+Description: fty-kpi-power-uptime
+ This package contains shared library for fty-kpi-power-uptime: compute data center uptime
 
-Package: libupt-dev
+Package: libfty-kpi-power-uptime-dev
 Architecture: any
 Section: libdevel
 Depends:
-    libzmq4-dev,
+    libzmq3-dev,
     libczmq-dev,
     libmlm-dev,
-    libbiosproto-dev,
-    libupt0 (= ${binary:Version})
-Description: development files for kpi-uptime
- This package contains development files for kpi-uptime: compute data center uptime
+    libfty-proto-dev,
+    libfty-kpi-power-uptime0 (= ${binary:Version})
+Description: development files for fty-kpi-power-uptime
+ This package contains development files for fty-kpi-power-uptime: compute data center uptime
 
-Package: kpi-uptime
+Package: fty-kpi-power-uptime
 Architecture: any
 Depends: ${misc:Depends}, ${shlibs:Depends}
 Description: compute data center uptime
- Main package for kpi-uptime: compute data center uptime
+ Main package for fty-kpi-power-uptime: compute data center uptime
 
-Package: kpi-uptime-dbg
+Package: fty-kpi-power-uptime-dbg
 Architecture: any
 Section: debug
 Priority: extra
 Depends:
-    kpi-uptime (= ${binary:Version}),
+    fty-kpi-power-uptime (= ${binary:Version}),
     ${misc:Depends}
-Description: debugging symbols for kpi-uptime
- This package contains the debugging symbols for kpi-uptime : compute data center uptime.
+Description: debugging symbols for fty-kpi-power-uptime
+ This package contains the debugging symbols for fty-kpi-power-uptime : compute data center uptime.
 

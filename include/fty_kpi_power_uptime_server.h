@@ -1,5 +1,5 @@
 /*  =========================================================================
-    uptime - Compute Data Center uptime
+    fty_kpi_power_uptime_server - Actor computing uptime
 
     Copyright (C) 2014 - 2015 Eaton                                        
                                                                            
@@ -19,12 +19,45 @@
     =========================================================================
 */
 
-#ifndef UPTIME_H_INCLUDED
-#define UPTIME_H_INCLUDED
+#ifndef FTY_KPI_POWER_UPTIME_SERVER_H_INCLUDED
+#define FTY_KPI_POWER_UPTIME_SERVER_H_INCLUDED
 
-//  Include the project library file
-#include "upt_library.h"
+#ifdef __cplusplus
+extern "C" {
+#endif
 
-//  Add your own public definitions here, if you need them
+//  @interface
+//  Create new fty-kpi-power-uptime instance.
+//
+//      zactor_t *server = zactor_new (fty_kpi_power_uptime_server, "uptime");
+//
+//  Destroy the instance
+//      zsock_destroy (&server);
+//
+//  All fty_kpi_power_uptime_server commands are synchronous, so must be followed by zsock_wait
+//
+//  Set verbose mode
+//      zsock_send (server, "VERBOSE");
+//      zsock_wait (server);
+//
+//  Connect to malamute endpoint (it'll interally subscribe on METRIC stream and ups.status.* messages)
+//      zsock_sendx (server, "CONNECT", "ipc://@/malamute", NULL);
+//      zsock_wait (server);
+//
+//  Setup directory for storing the state
+//      zsock_sendx (server, "CONFIG", "src/", NULL);
+//      zsock_wait (server);
+//
+void fty_kpi_power_uptime_server (zsock_t *pipe, void *args);
+
+//  Self test of this class
+FTY_KPI_POWER_UPTIME_EXPORT void
+    fty_kpi_power_uptime_server_test (bool verbose);
+
+//  @end
+
+#ifdef __cplusplus
+}
+#endif
 
 #endif

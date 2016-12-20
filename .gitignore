@@ -18,8 +18,8 @@
 *.lo
 
 # Executables
-src/uptime_selftest
-src/upt_selftest
+src/fty-kpi-power-uptime
+src/fty_kpi_power_uptime_selftest
 *.exe
 *.out
 *.app
@@ -73,3 +73,4 @@ src/app/jni/output
 # Temporary files
 *.swp
 *~
+*.bak

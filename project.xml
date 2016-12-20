@@ -1,27 +1,35 @@
 <project
-    name = "kpi-uptime"
+    name = "fty-kpi-power-uptime"
     description = "Compute Data Center uptime"
-    prefix = "upt"
     script = "zproject.gsl"
-    repository = "https://stash.mbt.lab.etn.com/BIOS/uptime">
+    email = "EatonIPCOpenSource@eaton.com"
+    url = "https://42ity.com/"
+    license = "GPL-2.0+"
+    repository = "https://github.com/42ity/fty-kpi-power-uptime"
+    abi = "1:0:0"
+    >
 
     <target name = "debian" />
     <target name = "redhat" />
+    <target name = "travis" />    
 
     <include filename = "license.xml" />
-    <use project = "czmq" />
+    <version major = "1" minor = "0" patch = "0" />
+
+    <use project = "czmq" release = "v3.0.2" />
     <use project = "malamute" />
-    <use project = "libbiosproto" libname = "biosproto" prefix="biosproto"
-        min_major = "0" min_minor = "0" min_patch = "0"
-        repository = "https://stash.mbt.lab.etn.com/BIOS/libbiosproto"
-        test = "bios_proto_test">
+
+   <use project = "fty-proto" libname = "libfty_proto" header="ftyproto.h"
+        min_major = "1" min_minor = "0" min_patch = "0"
+        repository = "https://github.com/42ity/fty-proto"
+        test = "fty_proto_test">
         <use project = "malamute"/>
     </use>
 
     <class name = "dc" private="1">DC information</class>
     <class name = "upt" private="1">DC uptime</class>
-    <class name = "upt_server" status = "stable">Actor computing uptime</class>
-    <main name = "kpi-uptime" service = "1">
+    <class name = "fty_kpi_power_uptime_server" status = "stable">Actor computing uptime</class>
+    <main name = "fty-kpi-power-uptime" service = "1">
         Main daemon
     </main>
 </project>

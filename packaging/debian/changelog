@@ -1,5 +1,5 @@
-kpi-uptime (0.0.0) UNRELEASED; urgency=low
+fty-kpi-power-uptime (1.0.0) UNRELEASED; urgency=low
 
   * Initial packaging.
 
- -- kpi-uptime Developers <email@hostname.com>     Wed, 31 Dec 2014 00:00:00 +0000
+ -- fty-kpi-power-uptime Developers <eatonipcopensource@eaton.com>  Wed, 31 Dec 2014 00:00:00 +0000

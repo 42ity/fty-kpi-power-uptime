@@ -1,5 +1,5 @@
 [Unit]
-Description=bios KPI uptime service
+Description=42ity kpi-power-uptime service
 Requires=network.target malamute.service
 After=network.target malamute.service
 PartOf=bios.target
@@ -12,7 +12,7 @@ EnvironmentFile=-/usr/share/bios/etc/default/bios__%n.conf
 EnvironmentFile=-/etc/default/bios
 EnvironmentFile=-/etc/default/bios__%n.conf
 Environment="prefix=@prefix@"
-ExecStart=@prefix@/bin/kpi-uptime
+ExecStart=@prefix@/bin/fty-kpi-power-uptime @sysconfdir@/@PACKAGE@/fty-kpi-power-uptime.cfg
 
 [Install]
 WantedBy=bios.target

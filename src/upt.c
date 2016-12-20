@@ -26,7 +26,7 @@
 @end
 */
 
-#include "upt_classes.h"
+#include "fty_kpi_power_uptime_classes.h"
 
 struct _upt_t {
     zhashx_t *ups2dc;       //map ups name to dc name
@@ -204,7 +204,7 @@ upt_uptime (upt_t *self, const char* dc_name, uint64_t* total, uint64_t* offline
     return 0;
 }
 
-UPT_EXPORT void
+FTY_KPI_POWER_UPTIME_EXPORT void
     upt_print (upt_t* self)
 {
     zsys_debug ("self: <%p>\n", (void*) self);

@@ -29,11 +29,11 @@
 %define DRAFTS no
 %endif
 Name:           fty-kpi-power-uptime
-Version:        0.0.0
+Version:        1.0.0
 Release:        1
 Summary:        compute data center uptime
 License:        GPL-2.0+
-URL:            http://example.com/
+URL:            https://42ity.com/
 Source0:        %{name}-%{version}.tar.gz
 Group:          System/Libraries
 # Note: ghostscript is required by graphviz which is required by
@@ -58,18 +58,17 @@ BuildRoot:      %{_tmppath}/%{name}-%{version}-build
 %description
 fty-kpi-power-uptime compute data center uptime.
 
-%package -n libfty_kpi_power_uptime0
+%package -n libfty_kpi_power_uptime1
 Group:          System/Libraries
-Summary:        compute data center uptime
+Summary:        compute data center uptime shared library
 
-%description -n libfty_kpi_power_uptime0
-fty-kpi-power-uptime compute data center uptime.
-This package contains shared library.
+%description -n libfty_kpi_power_uptime1
+This package contains shared library for fty-kpi-power-uptime: compute data center uptime
 
-%post -n libfty_kpi_power_uptime0 -p /sbin/ldconfig
-%postun -n libfty_kpi_power_uptime0 -p /sbin/ldconfig
+%post -n libfty_kpi_power_uptime1 -p /sbin/ldconfig
+%postun -n libfty_kpi_power_uptime1 -p /sbin/ldconfig
 
-%files -n libfty_kpi_power_uptime0
+%files -n libfty_kpi_power_uptime1
 %defattr(-,root,root)
 %doc COPYING
 %{_libdir}/libfty_kpi_power_uptime.so.*
@@ -77,15 +76,15 @@ This package contains shared library.
 %package devel
 Summary:        compute data center uptime
 Group:          System/Libraries
-Requires:       libfty_kpi_power_uptime0 = %{version}
+Requires:       libfty_kpi_power_uptime1 = %{version}
 Requires:       zeromq-devel
 Requires:       czmq-devel
 Requires:       malamute-devel
 Requires:       fty-proto-devel
 
 %description devel
-fty-kpi-power-uptime compute data center uptime.
-This package contains development files.
+compute data center uptime development tools
+This package contains development files for fty-kpi-power-uptime: compute data center uptime
 
 %files devel
 %defattr(-,root,root)

@@ -41,12 +41,12 @@
 
 //  *** Draft method, defined for internal use only ***
 //  Self test of this class.
-FTY_KPI_POWER_UPTIME_EXPORT void
+FTY_KPI_POWER_UPTIME_PRIVATE void
     dc_test (bool verbose);
 
 //  *** Draft method, defined for internal use only ***
 //  Self test of this class.
-FTY_KPI_POWER_UPTIME_EXPORT void
+FTY_KPI_POWER_UPTIME_PRIVATE void
     upt_test (bool verbose);
 
 #endif // FTY_KPI_POWER_UPTIME_BUILD_DRAFT_API

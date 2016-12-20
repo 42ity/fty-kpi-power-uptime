@@ -7,7 +7,7 @@
 # Process this file with autoconf to produce a configure script.
 AC_PREREQ(2.61)
 #
-AC_INIT([fty-kpi-power-uptime],[0.0.0],[eatonipcopensource@eaton.com])
+AC_INIT([fty-kpi-power-uptime],[1.0.0],[eatonipcopensource@eaton.com])
 
 AC_CONFIG_AUX_DIR(config)
 AC_CONFIG_MACRO_DIR(config)
@@ -36,7 +36,7 @@ AC_SUBST(PACKAGE_VERSION)
 # http://www.gnu.org/software/libtool/manual/html_node/Updating-version-info.html
 #
 # libfty_kpi_power_uptime -version-info
-LTVER="0:0:0"
+LTVER="1:0:0"
 AC_SUBST(LTVER)
 
 # Capture c flags
@@ -150,7 +150,7 @@ PKG_CHECK_MODULES([czmq], [libczmq >= 0.0.0],
         fi
 
 
-        AC_CHECK_LIB([czmq], [zctx_test],
+        AC_CHECK_LIB([czmq], [zhashx_test],
             [
                 CFLAGS="${czmq_synthetic_cflags} ${CFLAGS}"
                 LDFLAGS="${czmq_synthetic_libs} ${LDFLAGS}"
@@ -267,7 +267,7 @@ else
     if test "x$fty_kpi_power_uptime_have_asciidoc" = "xno" -o "x$fty_kpi_power_uptime_have_xmlto" = "xno"; then
         fty_kpi_power_uptime_build_doc="no"
         # Tarballs built with 'make dist' ship with prebuilt documentation.
-        if ! test -f doc/fty_kpi_power_uptime.7; then
+        if ! test -f doc/fty-kpi-power-uptime.7; then
             fty_kpi_power_uptime_install_man="no"
             AC_MSG_WARN([You are building an unreleased version of FTY-KPI-POWER-UPTIME and asciidoc or xmlto are not installed.])
             AC_MSG_WARN([Documentation will not be built and manual pages will not be installed.])
@@ -300,6 +300,8 @@ case "${host_os}" in
     *solaris*)
         # Define on Solaris to enable all library features
         CPPFLAGS="-D_PTHREADS $CPPFLAGS"
+        # Allow definitions of common OS-provided functions that are not in old standards
+        CPPFLAGS="-D__EXTENSIONS__ $CPPFLAGS"
         AC_DEFINE(FTY_KPI_POWER_UPTIME_HAVE_SOLARIS, 1, [Have Solaris OS])
         CFLAGS="${CFLAGS} -lsocket -lssp"
         ;;
@@ -563,6 +565,8 @@ echo "                           (requires zproject and zproto)"
 echo "    - 'make debug'         run the project's selftest under gdb"
 echo "    - 'make memcheck'      run the project's selftest with valgrind to"
 echo "                           check for memory leaks"
+echo "    - 'make coverage'      generate project's selftest coverage report"
+echo "                           expects --with-gcov option for configure"
 echo
 ])
 

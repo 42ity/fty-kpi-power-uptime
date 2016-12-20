@@ -185,7 +185,7 @@ install(TARGETS fty_kpi_power_uptime
 ########################################################################
 # pkgconfig
 ########################################################################
-set (VERSION "0.0.0")
+set (VERSION "1.0.0")
 set (prefix "${CMAKE_INSTALL_PREFIX}")
 set (exec_prefix "\${prefix}")
 set (libdir "\${prefix}/lib${LIB_SUFFIX}")
@@ -257,8 +257,6 @@ if(UNIX)
 endif()
 
 set(TEST_CLASSES
-    dc
-    upt
 )
 
 IF (ENABLE_DRAFTS)

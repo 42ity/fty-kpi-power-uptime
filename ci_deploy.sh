@@ -11,7 +11,7 @@ set -e
 if [ "$BUILD_TYPE" == "default" ]; then
     # Tell travis to deploy all files in dist
     mkdir dist
-    export FTY-KPI-POWER-UPTIME_DEPLOYMENT=dist/*
+    export FTY_KPI_POWER_UPTIME_DEPLOYMENT=dist/*
     # Move archives to dist
     mv *.tar.gz dist
     mv *.zip dist
@@ -22,7 +22,8 @@ if [ "$BUILD_TYPE" == "default" ]; then
     cd -
 elif [ "$BUILD_TYPE" == "bindings" ] && [ "$BINDING" == "jni" ]; then
     ( cd bindings/jni && TERM=dumb PKG_CONFIG_PATH=/tmp/lib/pkgconfig ./gradlew clean bintrayUpload )
-    export CZMQ_DEPLOYMENT=bindings/jni/android/fty_kpi_power_uptime-android.jar
+    cp bindings/jni/android/fty_kpi_power_uptime-android.jar fty_kpi_power_uptime-android-1.0.0.jar
+    export FTY_KPI_POWER_UPTIME_DEPLOYMENT=fty_kpi_power_uptime-android-1.0.0.jar
 else
-    export FTY-KPI-POWER-UPTIME_DEPLOYMENT=""
+    export FTY_KPI_POWER_UPTIME_DEPLOYMENT=""
 fi

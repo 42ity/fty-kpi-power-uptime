@@ -1,7 +1,7 @@
 Format: 3.0 (quilt)
 Binary: fty-kpi-power-uptime
 Source: fty-kpi-power-uptime
-Version: 0.0.0
+Version: 1.0.0
 Maintainer: fty-kpi-power-uptime Developers <eatonipcopensource@eaton.com>
 Architecture: any
 Build-Depends: debhelper (>= 9),

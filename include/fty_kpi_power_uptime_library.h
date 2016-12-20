@@ -35,7 +35,7 @@
 #include <ftyproto.h>
 
 //  FTY_KPI_POWER_UPTIME version macros for compile-time API detection
-#define FTY_KPI_POWER_UPTIME_VERSION_MAJOR 0
+#define FTY_KPI_POWER_UPTIME_VERSION_MAJOR 1
 #define FTY_KPI_POWER_UPTIME_VERSION_MINOR 0
 #define FTY_KPI_POWER_UPTIME_VERSION_PATCH 0
 
@@ -58,8 +58,14 @@
 #   else
 #       define FTY_KPI_POWER_UPTIME_EXPORT __declspec(dllimport)
 #   endif
+#   define FTY_KPI_POWER_UPTIME_PRIVATE
 #else
 #   define FTY_KPI_POWER_UPTIME_EXPORT
+#   if (defined __GNUC__ && __GNUC__ >= 4) || defined __INTEL_COMPILER
+#       define FTY_KPI_POWER_UPTIME_PRIVATE __attribute__ ((visibility ("hidden")))
+#   else
+#       define FTY_KPI_POWER_UPTIME_PRIVATE
+#   endif
 #endif
 
 //  Project has no stable classes, so we build the draft API

@@ -11,7 +11,7 @@ services:
 
 env:
 - BUILD_TYPE=default
-- BUILD_TYPE=cmake
+#- BUILD_TYPE=cmake
 #- BUILD_TYPE=android
 #- BUILD_TYPE=check-py
 

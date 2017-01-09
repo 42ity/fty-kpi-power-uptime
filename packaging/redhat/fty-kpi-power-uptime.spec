@@ -58,17 +58,17 @@ BuildRoot:      %{_tmppath}/%{name}-%{version}-build
 %description
 fty-kpi-power-uptime compute data center uptime.
 
-%package -n libfty_kpi_power_uptime1
+%package -n libfty_kpi_power_uptime0
 Group:          System/Libraries
 Summary:        compute data center uptime shared library
 
-%description -n libfty_kpi_power_uptime1
+%description -n libfty_kpi_power_uptime0
 This package contains shared library for fty-kpi-power-uptime: compute data center uptime
 
-%post -n libfty_kpi_power_uptime1 -p /sbin/ldconfig
-%postun -n libfty_kpi_power_uptime1 -p /sbin/ldconfig
+%post -n libfty_kpi_power_uptime0 -p /sbin/ldconfig
+%postun -n libfty_kpi_power_uptime0 -p /sbin/ldconfig
 
-%files -n libfty_kpi_power_uptime1
+%files -n libfty_kpi_power_uptime0
 %defattr(-,root,root)
 %doc COPYING
 %{_libdir}/libfty_kpi_power_uptime.so.*
@@ -76,7 +76,7 @@ This package contains shared library for fty-kpi-power-uptime: compute data cent
 %package devel
 Summary:        compute data center uptime
 Group:          System/Libraries
-Requires:       libfty_kpi_power_uptime1 = %{version}
+Requires:       libfty_kpi_power_uptime0 = %{version}
 Requires:       zeromq-devel
 Requires:       czmq-devel
 Requires:       malamute-devel

@@ -54,6 +54,7 @@ src/.dirstamp
 # CMake cache
 CMakeCache.txt
 CMakeFiles/
+CMakesLists.txt
 CTestTestfile.cmake
 cmake_install.cmake
 install_manifest.txt
@@ -74,3 +75,5 @@ src/app/jni/output
 *.swp
 *~
 *.bak
+*.tar.gz
+*.zip

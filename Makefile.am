@@ -29,13 +29,18 @@ noinst_PROGRAMS =
 check_PROGRAMS =
 noinst_LTLIBRARIES =
 TESTS =
+EXTRA_DIST =
 
-EXTRA_DIST = \
-    CMakeLists.txt \
+if ENABLE_DIST_CMAKEFILES
+EXTRA_DIST += \
     Findlibzmq.cmake \
     Findczmq.cmake \
     Findmalamute.cmake \
     Findfty_proto.cmake \
+    CMakeLists.txt
+endif
+
+EXTRA_DIST += \
     src/dc.h \
     src/upt.h \
     src/fty_kpi_power_uptime_classes.h

@@ -36,8 +36,6 @@ typedef struct {
 
 static test_item_t
 all_tests [] = {
-    { "dc", dc_test },
-    { "upt", upt_test },
 #ifdef FTY_KPI_POWER_UPTIME_BUILD_DRAFT_API
     { "fty_kpi_power_uptime_server", fty_kpi_power_uptime_server_test },
 #endif // FTY_KPI_POWER_UPTIME_BUILD_DRAFT_API

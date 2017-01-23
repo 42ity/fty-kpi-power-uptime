@@ -54,7 +54,7 @@ int main (int argc, char *argv [])
     static const char* endpoint = "ipc://@/malamute";
     //XXX: this comes from old project name - uptime. Don't change if you're not
     //     willing to maintain code which moves things from old path :)
-    static const char* dir = "/var/lib/bios/uptime/";
+    static const char* dir = "/var/lib/bios/uptime";
 
     zactor_t *server = zactor_new (fty_kpi_power_uptime_server, "uptime");
     if (verbose) {

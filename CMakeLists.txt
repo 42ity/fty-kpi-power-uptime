@@ -161,6 +161,12 @@ IF (ENABLE_DRAFTS)
     )
 ENDIF (ENABLE_DRAFTS)
 
+IF (ENABLE_DRAFTS)
+    list (APPEND fty_kpi_power_uptime_sources
+        src/fty_kpi_power_uptime_private_selftest.c
+    )
+ENDIF (ENABLE_DRAFTS)
+
 source_group("Source Files" FILES ${fty_kpi_power_uptime_sources})
 if (NOT DEFINED BUILD_SHARED_LIBS)
     SET(BUILD_SHARED_LIBS ON)
@@ -169,8 +175,8 @@ add_library(fty_kpi_power_uptime ${fty_kpi_power_uptime_sources})
 set_target_properties(fty_kpi_power_uptime
     PROPERTIES DEFINE_SYMBOL "FTY_KPI_POWER_UPTIME_EXPORTS"
 )
-set_target_properties(fty_kpi_power_uptime
-    PROPERTIES LIBRARY_OUTPUT_DIRECTORY "${SOURCE_DIR}/src"
+set_target_properties (fty_kpi_power_uptime
+    PROPERTIES SOVERSION "1.0.0"
 )
 target_link_libraries(fty_kpi_power_uptime
     ${ZEROMQ_LIBRARIES} ${MORE_LIBRARIES}
@@ -221,9 +227,8 @@ target_link_libraries(
     ${FTY-PROTO_LIBRARIES}
     ${OPTIONAL_LIBRARIES}
 )
-set_target_properties(
-    fty-kpi-power-uptime
-    PROPERTIES RUNTIME_OUTPUT_DIRECTORY "${SOURCE_DIR}/src"
+install(TARGETS fty-kpi-power-uptime
+    RUNTIME DESTINATION bin
 )
 add_executable(
     fty_kpi_power_uptime_selftest
@@ -237,10 +242,6 @@ target_link_libraries(
     ${MALAMUTE_LIBRARIES}
     ${FTY-PROTO_LIBRARIES}
     ${OPTIONAL_LIBRARIES}
-)
-set_target_properties(
-    fty_kpi_power_uptime_selftest
-    PROPERTIES RUNTIME_OUTPUT_DIRECTORY "${SOURCE_DIR}/src"
 )
 
 ########################################################################
@@ -262,6 +263,12 @@ set(TEST_CLASSES
 IF (ENABLE_DRAFTS)
     list (APPEND TEST_CLASSES
     fty_kpi_power_uptime_server
+    )
+ENDIF (ENABLE_DRAFTS)
+
+IF (ENABLE_DRAFTS)
+    list (APPEND TEST_CLASSES
+    private_classes
     )
 ENDIF (ENABLE_DRAFTS)
 

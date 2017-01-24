@@ -1,7 +1,7 @@
 /*  =========================================================================
     fty-kpi-power-uptime - generated layer of public API
 
-    Copyright (C) 2014 - 2015 Eaton                                        
+    Copyright (C) 2014 - 2017 Eaton                                        
                                                                            
     This program is free software; you can redistribute it and/or modify   
     it under the terms of the GNU General Public License as published by   
@@ -84,6 +84,12 @@ typedef struct _fty_kpi_power_uptime_server_t fty_kpi_power_uptime_server_t;
 //  Public classes, each with its own header file
 #ifdef FTY_KPI_POWER_UPTIME_BUILD_DRAFT_API
 #include "fty_kpi_power_uptime_server.h"
+#endif // FTY_KPI_POWER_UPTIME_BUILD_DRAFT_API
+
+#ifdef FTY_KPI_POWER_UPTIME_BUILD_DRAFT_API
+//  Self test for private classes
+FTY_KPI_POWER_UPTIME_EXPORT void
+    fty_kpi_power_uptime_private_selftest (bool verbose);
 #endif // FTY_KPI_POWER_UPTIME_BUILD_DRAFT_API
 
 #endif

@@ -6,15 +6,14 @@ Maintainer: fty-kpi-power-uptime Developers <eatonipcopensource@eaton.com>
 Architecture: any
 Build-Depends: debhelper (>= 9),
     pkg-config,
-    dh-autoreconf,
     libzmq3-dev,
     libczmq-dev,
     libmlm-dev,
     libfty-proto-dev,
     systemd,
     dh-systemd,
-Build-Depends-Indep: asciidoc,
-                     xmlto
+    asciidoc-base | asciidoc, xmlto,
+    dh-autoreconf
 
 Files:
  7697688bf65a35bc33ae2db51ebb0e3b 818110 fty-kpi-power-uptime.tar.gz

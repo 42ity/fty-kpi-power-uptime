@@ -1,7 +1,7 @@
 /*  =========================================================================
     fty_kpi_power_uptime_classes - private header file
 
-    Copyright (C) 2014 - 2015 Eaton                                        
+    Copyright (C) 2014 - 2017 Eaton                                        
                                                                            
     This program is free software; you can redistribute it and/or modify   
     it under the terms of the GNU General Public License as published by   
@@ -32,6 +32,18 @@
 //  External API
 #include "../include/fty_kpi_power_uptime.h"
 
+//  Extra headers
+
+//  Opaque class structures to allow forward references
+#ifndef DC_T_DEFINED
+typedef struct _dc_t dc_t;
+#define DC_T_DEFINED
+#endif
+#ifndef UPT_T_DEFINED
+typedef struct _upt_t upt_t;
+#define UPT_T_DEFINED
+#endif
+
 //  Internal API
 #include "dc.h"
 #include "upt.h"
@@ -48,6 +60,10 @@ FTY_KPI_POWER_UPTIME_PRIVATE void
 //  Self test of this class.
 FTY_KPI_POWER_UPTIME_PRIVATE void
     upt_test (bool verbose);
+
+//  Self test for private classes
+FTY_KPI_POWER_UPTIME_PRIVATE void
+    fty_kpi_power_uptime_private_selftest (bool verbose);
 
 #endif // FTY_KPI_POWER_UPTIME_BUILD_DRAFT_API
 

@@ -26,7 +26,10 @@
 extern "C" {
 #endif
 
+#ifndef UPT_T_DEFINED
 typedef struct _upt_t upt_t;
+#define UPT_T_DEFINED
+#endif
 
 //  @interface
 //  Create a new upt

@@ -26,7 +26,10 @@
 extern "C" {
 #endif
 
+#ifndef DC_T_DEFINED
 typedef struct _dc_t dc_t;
+#define DC_T_DEFINED
+#endif
 
 //  @interface
 //  Create a new dc

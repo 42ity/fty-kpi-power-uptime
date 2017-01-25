@@ -5,9 +5,10 @@ set -ex
 # ci_build.sh script, which sets some envvars (like REPO_DIR below).
 [ -n "${REPO_DIR-}" ] || exit 1
 
+# Verify all required dependencies with repos can be checked out
 cd "$REPO_DIR/.."
 git clone --quiet --depth 1 https://github.com/zeromq/libzmq.git libzmq
-git clone --quiet --depth 1 https://github.com/zeromq/czmq.git czmq
+git clone --quiet --depth 1 -b v3.0.2 https://github.com/zeromq/czmq.git czmq
 git clone --quiet --depth 1 https://github.com/zeromq/malamute.git malamute
 git clone --quiet --depth 1 https://github.com/42ity/fty-proto fty-proto
 cd -
@@ -30,6 +31,7 @@ if ! ((command -v dpkg-query >/dev/null 2>&1 && dpkg-query --list generator-scri
 fi
 export PATH
 
+# Verify that zproject template is up-to-date with files it can overwrite
 # As we will overwrite this script file make sure bash loads the
 # next lines into memory before executing
 # http://stackoverflow.com/questions/21096478/overwrite-executing-bash-script-files

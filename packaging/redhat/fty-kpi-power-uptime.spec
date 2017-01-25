@@ -1,7 +1,7 @@
 #
 #    fty-kpi-power-uptime - Compute Data Center uptime
 #
-#    Copyright (C) 2014 - 2015 Eaton                                        
+#    Copyright (C) 2014 - 2017 Eaton                                        
 #                                                                           
 #    This program is free software; you can redistribute it and/or modify   
 #    it under the terms of the GNU General Public License as published by   
@@ -58,17 +58,17 @@ BuildRoot:      %{_tmppath}/%{name}-%{version}-build
 %description
 fty-kpi-power-uptime compute data center uptime.
 
-%package -n libfty_kpi_power_uptime0
+%package -n libfty_kpi_power_uptime1
 Group:          System/Libraries
 Summary:        compute data center uptime shared library
 
-%description -n libfty_kpi_power_uptime0
+%description -n libfty_kpi_power_uptime1
 This package contains shared library for fty-kpi-power-uptime: compute data center uptime
 
-%post -n libfty_kpi_power_uptime0 -p /sbin/ldconfig
-%postun -n libfty_kpi_power_uptime0 -p /sbin/ldconfig
+%post -n libfty_kpi_power_uptime1 -p /sbin/ldconfig
+%postun -n libfty_kpi_power_uptime1 -p /sbin/ldconfig
 
-%files -n libfty_kpi_power_uptime0
+%files -n libfty_kpi_power_uptime1
 %defattr(-,root,root)
 %doc COPYING
 %{_libdir}/libfty_kpi_power_uptime.so.*
@@ -76,7 +76,7 @@ This package contains shared library for fty-kpi-power-uptime: compute data cent
 %package devel
 Summary:        compute data center uptime
 Group:          System/Libraries
-Requires:       libfty_kpi_power_uptime0 = %{version}
+Requires:       libfty_kpi_power_uptime1 = %{version}
 Requires:       zeromq-devel
 Requires:       czmq-devel
 Requires:       malamute-devel
@@ -92,6 +92,7 @@ This package contains development files for fty-kpi-power-uptime: compute data c
 %{_libdir}/libfty_kpi_power_uptime.so
 %{_libdir}/pkgconfig/libfty_kpi_power_uptime.pc
 %{_mandir}/man3/*
+%{_mandir}/man7/*
 
 %prep
 %setup -q

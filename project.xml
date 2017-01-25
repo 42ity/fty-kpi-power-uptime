@@ -6,20 +6,20 @@
     url = "https://42ity.com/"
     license = "GPL-2.0+"
     repository = "https://github.com/42ity/fty-kpi-power-uptime"
-    abi = "1:0:0"
     >
 
     <target name = "debian" />
     <target name = "redhat" />
-    <target name = "travis" />    
+    <target name = "travis" />
 
     <include filename = "license.xml" />
     <version major = "1" minor = "0" patch = "0" />
+    <abi current = "1" revision = "0" age = "0" />
 
     <use project = "czmq" release = "v3.0.2" />
     <use project = "malamute" />
 
-   <use project = "fty-proto" libname = "libfty_proto" header="ftyproto.h"
+    <use project = "fty-proto" libname = "libfty_proto" header="ftyproto.h"
         min_major = "1" min_minor = "0" min_patch = "0"
         repository = "https://github.com/42ity/fty-proto"
         test = "fty_proto_test">

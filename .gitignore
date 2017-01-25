@@ -1,3 +1,6 @@
+# This is a skeleton created by zproject.
+# You can add hand-written code here.
+save.xml
 # Object files
 *.o
 *.so
@@ -18,12 +21,18 @@
 *.lo
 
 # Executables
+src/fty-kpi-power-uptime_selftest
 src/fty-kpi-power-uptime
 src/fty_kpi_power_uptime_selftest
 *.exe
 *.out
 *.app
 core
+
+ # Distcheck workspace and archives
+fty-kpi-power-uptime-1.0.0/
+fty-kpi-power-uptime-1.0.0.tar.gz
+fty-kpi-power-uptime-1.0.0.zip
 
 # Man pages
 doc/*.1
@@ -37,6 +46,7 @@ doc/*.7
 *.trs
 Makefile
 Makefile.in
+!builds/openwrt/Makefile
 aclocal.m4
 autom4te.cache/
 config.log
@@ -57,7 +67,34 @@ CMakeFiles/
 CMakesLists.txt
 CTestTestfile.cmake
 cmake_install.cmake
+compile_commands.json
+DartConfiguration.tcl
 install_manifest.txt
+Testing/
+
+# Repositories downloaded by CI integration scripts
+libzmq/
+czmq/
+malamute/
+fty-proto/
+
+# Travis build area
+tmp/
+
+# Valgrind files
+callgrind*
+vgcore*
+
+# Vagrant files
+.vagrant
+
+# CLion / PyCharm
+.idea
+
+# GYP files
+project.Makefile
+*.target.mk
+out/
 
 # Android build results
 builds/android/prefix
@@ -71,9 +108,27 @@ src/app/local.properties
 # Android -dependencies
 src/app/jni/output
 
+# Python build directory
+build/
+
+# MSVC build directories
+obj/
+bin/
+*.tlog
+
+# Qt
+*pro.user
+moc_*
+build-*
+bindings/qt/selftest/selftest
+
 # Temporary files
 *.swp
-*~
 *.bak
+.test*
+
+# editor backups
+*~
+
 *.tar.gz
 *.zip

@@ -4,7 +4,7 @@
     Runs all selftests.
 
     -------------------------------------------------------------------------
-    Copyright (C) 2014 - 2015 Eaton                                        
+    Copyright (C) 2014 - 2017 Eaton                                        
                                                                            
     This program is free software; you can redistribute it and/or modify   
     it under the terms of the GNU General Public License as published by   
@@ -37,7 +37,11 @@ typedef struct {
 static test_item_t
 all_tests [] = {
 #ifdef FTY_KPI_POWER_UPTIME_BUILD_DRAFT_API
+// Tests for draft public classes:
     { "fty_kpi_power_uptime_server", fty_kpi_power_uptime_server_test },
+#endif // FTY_KPI_POWER_UPTIME_BUILD_DRAFT_API
+#ifdef FTY_KPI_POWER_UPTIME_BUILD_DRAFT_API
+    { "private_classes", fty_kpi_power_uptime_private_selftest },
 #endif // FTY_KPI_POWER_UPTIME_BUILD_DRAFT_API
     {0, 0}          //  Sentinel
 };
@@ -103,9 +107,8 @@ main (int argc, char **argv)
         if (streq (argv [argn], "--list")
         ||  streq (argv [argn], "-l")) {
             puts ("Available tests:");
-            puts ("    dc");
-            puts ("    upt");
-            puts ("    fty_kpi_power_uptime_server");
+            puts ("    fty_kpi_power_uptime_server\t\t- draft");
+            puts ("    private_classes\t- draft");
             return 0;
         }
         else
@@ -135,6 +138,12 @@ main (int argc, char **argv)
             return 1;
         }
     }
+
+    #ifdef NDEBUG
+        printf(" !!! 'assert' macro is disabled, remove NDEBUG from your compilation definitions.\n");
+        printf(" tests will be meaningless.\n");
+    #endif //
+
     if (test) {
         printf ("Running fty-kpi-power-uptime test '%s'...\n", test->testname);
         test->test (verbose);

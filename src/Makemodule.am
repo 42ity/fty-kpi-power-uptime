@@ -32,6 +32,11 @@ src_libfty_kpi_power_uptime_la_SOURCES += \
 
 endif
 
+if ENABLE_DRAFTS
+src_libfty_kpi_power_uptime_la_SOURCES += \
+    src/fty_kpi_power_uptime_private_selftest.c
+endif
+
 src_libfty_kpi_power_uptime_la_CPPFLAGS = ${AM_CPPFLAGS}
 
 src_libfty_kpi_power_uptime_la_LDFLAGS = \
@@ -61,7 +66,8 @@ bin_PROGRAMS += src/fty-kpi-power-uptime
 src_fty_kpi_power_uptime_CPPFLAGS = ${AM_CPPFLAGS}
 src_fty_kpi_power_uptime_LDADD = ${program_libs}
 src_fty_kpi_power_uptime_SOURCES = src/fty_kpi_power_uptime.c
-src_fty_kpi_power_uptime_config_DATA = src/fty-kpi-power-uptime.cfg
+src_fty_kpi_power_uptime_config_DATA =
+src_fty_kpi_power_uptime_config_DATA += src/fty-kpi-power-uptime.cfg
 src_fty_kpi_power_uptime_configdir = $(sysconfdir)/fty-kpi-power-uptime
 if WITH_SYSTEMD_UNITS
 systemdsystemunit_DATA += src/fty-kpi-power-uptime.service

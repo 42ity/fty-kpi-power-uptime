@@ -219,6 +219,47 @@ s_handle_set (fty_kpi_power_uptime_server_t *server, mlm_client_t *client, zmsg_
     zstr_free (&dc_name);
 
 }
+    
+static void
+s_set_dc_upses (fty_kpi_power_uptime_server_t *server, fty_proto_t *msg)
+{
+    assert (msg);
+    const char *dc_name = fty_proto_name (msg);
+    if (!dc_name)
+    {
+        zsys_error ("s_set_dc_upses: missing DC name in fty-proto message");
+        return;
+    }
+    
+    zhash_t *aux = fty_proto_get_aux (msg);
+    if (!aux)
+    {    
+        zsys_error ("s_set_dc_upses: missing aux in fty-proto message");
+        return;
+    }
+    if (server->verbose)
+        zsys_debug ("%s:\ts_set_dc_upses dc_name: %s", server->name, dc_name);
+
+    zlistx_t *ups = zlistx_new ();
+    zlistx_set_destructor (ups, s_str_destructor);
+    
+    for (void *it = zhash_first(aux);
+         it != NULL;
+         it = zhash_next(aux))
+    {
+        if (server->verbose)
+            zsys_debug ("%s:\ts_set_dc_upses : %s", server->name, (char *)it);
+        zlistx_add_end (ups, it);
+    }    
+    upt_add (server->upt, dc_name, ups);
+
+    // recalculate uptime - some modification might have had an impact on a state of DC
+    uint64_t total, offline;
+    upt_uptime (server->upt, dc_name, &total, &offline);
+
+    zlistx_destroy (&ups);
+    zhash_destroy (&aux);
+}
 
 static void
 s_handle_uptime (fty_kpi_power_uptime_server_t *server, mlm_client_t *client, zmsg_t *msg)
@@ -459,11 +500,21 @@ void fty_kpi_power_uptime_server (zsock_t *pipe, void *args)
                 zsys_warning ("Not fty proto, skipping");
             }
             else
-            if (fty_proto_id (bmsg) != FTY_PROTO_METRIC) {
-                zsys_warning ("Not fty proto metric, skipping");
-            }
-            else {
+            if (fty_proto_id (bmsg) == FTY_PROTO_METRIC)
+            {
                 s_handle_metric (server, client, bmsg);
+            }
+            else
+            if (fty_proto_id (bmsg) == FTY_PROTO_ASSET)     
+            {
+                if (streq (fty_proto_type (bmsg),"datacenter"))
+                    s_set_dc_upses (server, bmsg);
+                else
+                    zsys_debug ("%s: invalid asset type", server->name);
+            }
+            else
+            {
+                zsys_warning ("%s: recieved invalid message", server->name);
             }
             fty_proto_destroy (&bmsg);
         }
@@ -504,6 +555,10 @@ fty_kpi_power_uptime_server_test (bool verbose)
     mlm_client_connect (ups, endpoint, 1000, "UPS");
     mlm_client_set_producer (ups, "METRICS");
 
+    mlm_client_t *ups_dc = mlm_client_new ();
+    mlm_client_connect (ups_dc, endpoint, 1000, "UPS_DC");
+    mlm_client_set_producer (ups_dc, "ASSETS");
+
     zactor_t *server = zactor_new (fty_kpi_power_uptime_server, (void*) "uptime");
     if (verbose) {
         zstr_send (server, "VERBOSE");
@@ -517,11 +572,35 @@ fty_kpi_power_uptime_server_test (bool verbose)
     zstr_sendx (server, "CONNECT", endpoint, NULL);
     zsock_wait (server);
     zstr_sendx (server, "CONSUMER", "METRICS", "status.ups.*", NULL);
+    zsock_wait (server);    
+    zstr_sendx (server, "CONSUMER", "ASSETS", "^datacenter.unknown.*", NULL);
     zsock_wait (server);
-    zstr_sendx (server, "CONFIG", "src/", NULL);
+    zstr_sendx (server, "CONFIG", "src/", NULL); 
     zsock_wait (server);
 
     zclock_sleep (500);   //THIS IS A HACK TO SETTLE DOWN THINGS
+
+    char *subject, *command, *total, *offline;
+
+    // new uptime function s_set_dc_upses
+    zhash_t *aux = zhash_new ();
+    zhash_insert (aux, "ups.1", "ROZ.UPS33");
+    zhash_insert (aux, "ups.2", "ROZ.UPS36");
+    zhash_insert (aux, "ups.2", "ROZ.UPS38");
+    zhash_insert (aux, "type", "datacenter");
+
+    char *fsubject = "datacenter.unknown@my_dc";
+    zmsg_t *fmsg = fty_proto_encode_asset (
+        aux,
+        "my-dc",
+        "inventory",
+        NULL     
+    );
+    
+    mlm_client_sendto (ups_dc, "uptime", fsubject, NULL, 5000, &fmsg);
+    zclock_sleep (1000);
+    
+    zhash_destroy(&aux);
 
     // add some data centers and ups'es
     zmsg_t *req = zmsg_new ();
@@ -531,7 +610,6 @@ fty_kpi_power_uptime_server_test (bool verbose)
     zmsg_addstrf (req, "%s", "UPS001");
     mlm_client_sendto (ui, "uptime", "UPTIME", NULL, 5000, &req);
 
-    char *subject, *command, *total, *offline;
     // check the uptime
     zclock_sleep (1000);
     req = zmsg_new ();
@@ -598,6 +676,7 @@ fty_kpi_power_uptime_server_test (bool verbose)
     zstr_free (&total);
     zstr_free (&offline);
 
+    mlm_client_destroy (&ups_dc);
     mlm_client_destroy (&ups);
     mlm_client_destroy (&ui);
 

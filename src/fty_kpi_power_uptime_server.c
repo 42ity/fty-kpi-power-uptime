@@ -257,6 +257,7 @@ s_set_dc_upses (fty_kpi_power_uptime_server_t *server, fty_proto_t *msg)
     uint64_t total, offline;
     upt_uptime (server->upt, dc_name, &total, &offline);
 
+    fty_proto_destroy (&msg);
     zlistx_destroy (&ups);
     zhash_destroy (&aux);
 }
@@ -581,27 +582,7 @@ fty_kpi_power_uptime_server_test (bool verbose)
     zclock_sleep (500);   //THIS IS A HACK TO SETTLE DOWN THINGS
 
     char *subject, *command, *total, *offline;
-
-    // new uptime function s_set_dc_upses
-    zhash_t *aux = zhash_new ();
-    zhash_insert (aux, "ups.1", "ROZ.UPS33");
-    zhash_insert (aux, "ups.2", "ROZ.UPS36");
-    zhash_insert (aux, "ups.2", "ROZ.UPS38");
-    zhash_insert (aux, "type", "datacenter");
-
-    char *fsubject = "datacenter.unknown@my_dc";
-    zmsg_t *fmsg = fty_proto_encode_asset (
-        aux,
-        "my-dc",
-        "inventory",
-        NULL     
-    );
     
-    mlm_client_sendto (ups_dc, "uptime", fsubject, NULL, 5000, &fmsg);
-    zclock_sleep (1000);
-    
-    zhash_destroy(&aux);
-
     // add some data centers and ups'es
     zmsg_t *req = zmsg_new ();
     zmsg_addstrf (req, "%s", "SET");

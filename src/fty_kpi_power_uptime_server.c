@@ -186,11 +186,12 @@ s_str_destructor (void **x)
 {
     zstr_free ((char**) x);
 }
-
+/*
 static void
 s_handle_set (fty_kpi_power_uptime_server_t *server, mlm_client_t *client, zmsg_t *msg)
 {
     char *dc_name = zmsg_popstr (msg);
+    
     if (!dc_name) {
         zsys_error ("no DC name in message, ignoring");
         return;
@@ -219,7 +220,7 @@ s_handle_set (fty_kpi_power_uptime_server_t *server, mlm_client_t *client, zmsg_
     zstr_free (&dc_name);
 
 }
-    
+*/
 static void
 s_set_dc_upses (fty_kpi_power_uptime_server_t *server, fty_proto_t *msg)
 {
@@ -475,7 +476,7 @@ void fty_kpi_power_uptime_server (zsock_t *pipe, void *args)
             }
             else
             if (streq (command, "SET")) {
-                s_handle_set (server, client, msg);
+                // s_handle_set (server, client, msg);
             }
             else
             if (streq (command, "UPTIME")) {
@@ -580,9 +581,7 @@ fty_kpi_power_uptime_server_test (bool verbose)
     zsock_wait (server);
 
     zclock_sleep (500);   //THIS IS A HACK TO SETTLE DOWN THINGS
-
-    char *subject, *command, *total, *offline;
-    
+    /*    
     // add some data centers and ups'es
     zmsg_t *req = zmsg_new ();
     zmsg_addstrf (req, "%s", "SET");
@@ -591,6 +590,7 @@ fty_kpi_power_uptime_server_test (bool verbose)
     zmsg_addstrf (req, "%s", "UPS001");
     mlm_client_sendto (ui, "uptime", "UPTIME", NULL, 5000, &req);
 
+    char *subject, *command, *total, *offline;
     // check the uptime
     zclock_sleep (1000);
     req = zmsg_new ();
@@ -652,11 +652,13 @@ fty_kpi_power_uptime_server_test (bool verbose)
     assert (streq (command, "UPTIME"));
     assert (streq (total, "3"));
     assert (streq (offline, "1"));
+
+    
     zstr_free (&subject);
     zstr_free (&command);
     zstr_free (&total);
     zstr_free (&offline);
-
+    */
     mlm_client_destroy (&ups_dc);
     mlm_client_destroy (&ups);
     mlm_client_destroy (&ui);

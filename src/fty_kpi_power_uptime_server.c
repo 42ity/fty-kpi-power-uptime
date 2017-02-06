@@ -182,12 +182,6 @@ int
 }
 
 static void
-s_str_destructor (void **x)
-{
-    zstr_free ((char**) x);
-}
-
-static void
 s_set_dc_upses (fty_kpi_power_uptime_server_t *self, fty_proto_t *fmsg)
 {    
     assert (fmsg);
@@ -207,14 +201,10 @@ s_set_dc_upses (fty_kpi_power_uptime_server_t *self, fty_proto_t *fmsg)
         return;
     }
 
-    self->verbose = true;
-    
     if (self->verbose)
         zsys_debug ("%s:\ts_set_dc_upses \t\t dc_name: %s", self->name, dc_name);
     
     zlistx_t *ups = zlistx_new ();
-    zlistx_set_destructor (ups, s_str_destructor);
-     
     for (void *it = zhash_first (aux);
          it != NULL;
          it = zhash_next (aux))
@@ -581,7 +571,7 @@ fty_kpi_power_uptime_server_test (bool verbose)
     zclock_sleep (500);  
 
     zhash_destroy (&aux);
-    //    fty_proto_destroy (&fmsg);
+    fty_proto_destroy (&fmsg);
 
     fty_kpi_power_uptime_server_destroy (&kpi);
     

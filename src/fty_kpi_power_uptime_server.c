@@ -159,7 +159,7 @@ int
     zfile_destroy (&f);
 
     if (r != 0) {
-        zsys_error ("Fail to save state : %s", strerror (errno));
+        zsys_error ("Fail to save state %s: %s", zfile_filename (f, NULL), strerror (errno));
         return -1;
     }
 
@@ -174,7 +174,7 @@ int
     zstr_free (&newpath);
 
     if (r != 0) {
-        zsys_error ("Fail to rename state file: %s", strerror (errno));
+        zsys_error ("Fail to rename state file %s: %s", zfile_filename (f, NULL),strerror (errno));
         return r;
     }
 

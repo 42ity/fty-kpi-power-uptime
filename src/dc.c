@@ -98,6 +98,7 @@ dc_set_offline (dc_t *self, char* ups)
     void *foo = zlistx_find (self->ups, ups);
     if (!foo)
         zlistx_add_end (self->ups, ups);
+    zsys_debug ("uptime: ups %s set offline", ups);
 }
 
 void

@@ -510,10 +510,6 @@ fty_kpi_power_uptime_server_test (bool verbose)
     if (verbose)
         zstr_send (broker, "VERBOSE");
 
-    mlm_client_t *ui = mlm_client_new ();
-    mlm_client_connect (ui, endpoint, 1000, "UI");
-    mlm_client_set_consumer (ui, "ASSETS", ".*");
-
     mlm_client_t *ui_metr = mlm_client_new ();
     mlm_client_connect (ui_metr, endpoint, 1000, "UI-M");
     
@@ -577,7 +573,7 @@ fty_kpi_power_uptime_server_test (bool verbose)
     // -------------- test of the whole component ---------- 
     const char *subject = "datacenter.unknown@my-dc";
     zhash_t *aux2 = zhash_new();
-    zhash_autofree(aux2);
+    zhash_autofree (aux2);
     zhash_insert (aux2, "ups.1", (void* ) "roz.ups33");
     zhash_insert (aux2, "ups.2", (void* ) "roz.ups36");
     zhash_insert (aux2, "ups.3", (void* ) "roz.ups38");
@@ -614,7 +610,8 @@ fty_kpi_power_uptime_server_test (bool verbose)
     assert (streq (command, "UPTIME"));
     assert (atoi (total) > 0);
     assert (atoi (offline) > 0);
-    
+
+    zmsg_destroy (&metric);
     zstr_free (&subject2);
     zstr_free (&command);
     zstr_free (&total);
@@ -622,9 +619,7 @@ fty_kpi_power_uptime_server_test (bool verbose)
 
     mlm_client_destroy (&ups_dc);
     mlm_client_destroy (&ups);
-    mlm_client_destroy (&ui);
-    mlm_client_destroy (&ui_metr);    
-   
+    mlm_client_destroy (&ui_metr);       
     zactor_destroy (&server);
     zactor_destroy (&broker);
    

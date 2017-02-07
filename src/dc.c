@@ -285,18 +285,21 @@ dc_test (bool verbose)
 
     uint64_t total, offline;
 
-    zclock_sleep (1000);
+    zclock_sleep (3000);
     dc_uptime (dc, &total, &offline);
-    assert (total == 1);
-    assert (offline == 1);
+    printf ("total:  %"PRIi64, total);
+    printf ("offline:  %"PRIi64, offline);
+    
+    assert (total > 1);
+    assert (offline > 1);
 
     dc_set_online (dc, "UPS001");
     assert (!dc_is_offline (dc));
 
-    zclock_sleep (1000);
+    zclock_sleep (3000);
     dc_uptime (dc, &total, &offline);
-    assert (total == 2);
-    assert (offline == 1);
+    assert (total > 2);
+    assert (offline > 1);
 
     dc_destroy (&dc);
 

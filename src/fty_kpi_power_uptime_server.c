@@ -92,47 +92,7 @@ FTY_KPI_POWER_UPTIME_EXPORT  void
     zstr_free (&self->dir);
     self->dir = strdup (dir);
 }
-/*
-int
-    fty_kpi_power_uptime_server_load_state (fty_kpi_power_uptime_server_t *self)
-{
-    assert (self);
-    assert (self->dir);
 
-    int r;
-    zfile_t *f = zfile_new (self->dir, "state");
-    r = zfile_input (f);
-    if (!zfile_is_regular (f) || !zfile_is_readable (f) || r == -1) {
-        if (self->verbose)
-            zsys_debug ("%s does not exists, or is not readable", zfile_filename (f, NULL));
-            zfile_destroy (&f);
-        return -2;
-    }
-
-    FILE *fp = zfile_handle (f);
-
-    if (!fp) {
-        zsys_error ("Fail to open '%s': %s", zfile_filename (f, NULL), strerror (errno));
-        zfile_destroy (&f);
-        return -1;
-    }
-
-    upt_t *upt = upt_load (fp);
-    zfile_close (f);
-
-    if (!upt) {
-        zsys_error ("Fail to decode '%s'", zfile_filename (f, NULL));
-        zfile_destroy (&f);
-        return -1;
-    }
-    zfile_destroy (&f);
-
-    upt_destroy (&self->upt);
-    self->upt = upt;
-    return 0;
-    }*/
-
-// load zconfig file    
 int
 fty_kpi_power_uptime_server_load_state (fty_kpi_power_uptime_server_t *self)
 {
@@ -162,57 +122,8 @@ fty_kpi_power_uptime_server_save_state (fty_kpi_power_uptime_server_t *self)
         return -1;
 
     return 0;
-}    
-/*    
-int
-    fty_kpi_power_uptime_server_save_state (fty_kpi_power_uptime_server_t *self)
-{
-    assert (self);
-    if (!self->dir) {
-        zsys_error ("Saving state directory not configured yet. Probably got some messages before CONFIG.");
-        return -1;
-    }
-
-    int r;
-
-    zfile_t *f = zfile_new (self->dir, "state.new");
-    r = zfile_output (f);
-    FILE *fp = zfile_handle (f);
-
-    if (!fp || r == -1) {
-        zsys_error ("Fail to open '%s': %s", zfile_filename (f, NULL), strerror (errno));
-        return -1;
-    }
-
-    r = upt_save (self->upt, fp);
-    fflush (fp);
-    fdatasync (fileno (fp));
-    zfile_close (f);
-    zfile_destroy (&f);
-
-    if (r != 0) {
-        zsys_error ("Fail to save state %s: %s", zfile_filename (f, NULL), strerror (errno));
-        return -1;
-    }
-
-    char* oldpath;
-    char* newpath;
-    r = asprintf (&oldpath, "%s/%s", self->dir, "state.new");
-    assert (r > 0);
-    r = asprintf (&newpath, "%s/%s", self->dir, "state");
-    assert (r > 0);
-    r = rename (oldpath, newpath);
-    zstr_free (&oldpath);
-    zstr_free (&newpath);
-
-    if (r != 0) {
-        zsys_error ("Fail to rename state file %s: %s", zfile_filename (f, NULL),strerror (errno));
-        return r;
-    }
-
-    return 0;
 }
-*/
+
 static void
 s_set_dc_upses (fty_kpi_power_uptime_server_t *self, fty_proto_t *fmsg)
 {    
@@ -333,7 +244,7 @@ s_ups_is_onbattery (fty_proto_t *msg)
 static void
 s_handle_metric (fty_kpi_power_uptime_server_t *server, mlm_client_t *client, fty_proto_t *msg)
 {
-    const char *ups_name = fty_proto_element_src (msg);
+    const char *ups_name = fty_proto_name (msg);
     const char *dc_name = upt_dc_name (server->upt, ups_name);
 
     if (!dc_name)
@@ -625,7 +536,7 @@ fty_kpi_power_uptime_server_test (bool verbose)
         
     // set ups to onbattery
     zmsg_t *metric = fty_proto_encode_metric (NULL,
-            "status.ups", "roz.ups33", "16", "", time (NULL));
+                                              "status.ups", "roz.ups33", "16", "", 1000 , time (NULL));
     mlm_client_send (ups, "status.ups@roz.ups33", &metric);
 
     char *subject2, *command, *total, *offline;
@@ -666,3 +577,4 @@ fty_kpi_power_uptime_server_test (bool verbose)
     
     printf ("OK\n");
 }
+

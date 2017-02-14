@@ -71,7 +71,7 @@ FTY_KPI_POWER_UPTIME_EXPORT void
 
 // load upt_t from file
 FTY_KPI_POWER_UPTIME_EXPORT upt_t*
-upt_load (upt_t *uptime, const char *file_path);
+upt_load (const char *file_path);
 
 //  Self test of this class
 FTY_KPI_POWER_UPTIME_EXPORT void

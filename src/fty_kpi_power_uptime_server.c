@@ -138,20 +138,28 @@ fty_kpi_power_uptime_server_load_state (fty_kpi_power_uptime_server_t *self)
 {
     assert (self);
     assert (self->dir);
-
+    const char *state_file = zsys_sprintf ("%s/state",self->dir);
     
-
+    int rv = upt_save (self->upt, state_file);
+    if (rv != 0)
+        return -1;
 
     return 0;
 }
 
-// save zconfig file
+
 int
 fty_kpi_power_uptime_server_save_state (fty_kpi_power_uptime_server_t *self)
 {
     assert (self);
-    assert (self->dir);
-
+    if (!self->dir) {
+        zsys_error ("Saving state directory not configured yet. Probably got some messages before CONFIG.");
+        return -1;
+    }
+    const char *state_file = zsys_sprintf ("%s/state",self->dir);
+    int rv = upt_save (self->upt, state_file);
+    if (rv != 0)
+        return -1;
 
     return 0;
 }    
@@ -653,14 +661,8 @@ fty_kpi_power_uptime_server_test (bool verbose)
     r = fty_kpi_power_uptime_server_load_state (s);
     assert (r == 0);
 
-    /*
-    r = unlink ("src/state");
-    assert (r == 0);
-    r = fty_kpi_power_uptime_server_load_state (s);
-    assert (r == -2);
-
     fty_kpi_power_uptime_server_destroy (&s);
     //  @end
-    */
+    
     printf ("OK\n");
 }

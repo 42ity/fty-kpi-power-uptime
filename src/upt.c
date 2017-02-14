@@ -161,7 +161,7 @@ upt_set_online (upt_t *self, const char* ups_name)
 {
     assert (self);
     assert (ups_name);
-
+    
     const char *dc_name = upt_dc_name (self, ups_name);
     if (!dc_name)
         return;
@@ -178,7 +178,7 @@ upt_dc_name (upt_t *self, const char* ups_name)
 {
     assert (self);
     assert (ups_name);
-
+    
     char *dc = (char*) zhashx_lookup (self->ups2dc, ups_name);
     if (!dc)
         return NULL;

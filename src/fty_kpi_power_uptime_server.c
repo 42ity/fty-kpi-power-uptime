@@ -301,7 +301,7 @@ s_ups_is_onbattery (fty_proto_t *msg)
 static void
 s_handle_metric (fty_kpi_power_uptime_server_t *server, mlm_client_t *client, fty_proto_t *msg)
 {
-    const char *ups_name = fty_proto_element_src (msg);
+    const char *ups_name = fty_proto_name (msg);
     const char *dc_name = upt_dc_name (server->upt, ups_name);
 
     if (!dc_name)
@@ -593,7 +593,7 @@ fty_kpi_power_uptime_server_test (bool verbose)
         
     // set ups to onbattery
     zmsg_t *metric = fty_proto_encode_metric (NULL,
-            "status.ups", "roz.ups33", "16", "", time (NULL));
+            "status.ups", "roz.ups33", "16", "", 42, time (NULL));
     mlm_client_send (ups, "status.ups@roz.ups33", &metric);
 
     char *subject2, *command, *total, *offline;

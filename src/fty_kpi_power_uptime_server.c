@@ -593,7 +593,7 @@ fty_kpi_power_uptime_server_test (bool verbose)
         
     // set ups to onbattery
     zmsg_t *metric = fty_proto_encode_metric (NULL,
-            "status.ups", "roz.ups33", "16", "", 42, time (NULL));
+        time (NULL), 42, "status.ups", "roz.ups33", "16", "");
     mlm_client_send (ups, "status.ups@roz.ups33", &metric);
 
     char *subject2, *command, *total, *offline;

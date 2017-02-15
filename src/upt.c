@@ -235,8 +235,7 @@ upt_save (upt_t *self, const char *file_path)
 {
     assert (self);
     assert (file_path);
-    
-    char *path = NULL;
+   
     zconfig_t *config_file = zconfig_new ("root", NULL);
     int i = 1;
     int j = 1;    
@@ -251,9 +250,10 @@ upt_save (upt_t *self, const char *file_path)
         
         // list of datacenters
         char *dc_name = (char*) zhashx_cursor (self->dc);        
-        path = zsys_sprintf ("dc_list/dc.%d", j);
+        char *path = zsys_sprintf ("dc_list/dc.%d", j);
         zconfig_putf (config_file, path, dc_name);
-
+        zstr_free(&path);
+        
         // self->ups2dc - list of upses for each dc
         for (char *dc = (char*) zhashx_first (self->ups2dc);
              dc != NULL;
@@ -262,30 +262,27 @@ upt_save (upt_t *self, const char *file_path)
             if (streq (dc, dc_name))
             {    
                 path = zsys_sprintf ("dc_upses/%s/ups.%d", dc, i);
-                zconfig_putf (config_file, path , "%s", (char*) zhashx_cursor (self->ups2dc));
-               i++;
-            }
-        }
-
+                zconfig_putf (config_file, path , "%s", (char*) zhashx_cursor (self->ups2dc));      
+                zstr_free (&path);
+                i++;
+            }            
+        }        
         j++;
 
     } // for 
 
     // save the state file
-    int rv = zconfig_save (config_file, file_path); 
+    int rv = zconfig_save (config_file, file_path);
     if (rv != 0)
     {
-        zsys_error ("upt_save: state file not saved");
-        
-        zstr_free (&path);
+        zsys_error ("upt_save: state file not saved");                
         zconfig_destroy (&config_file);
         dc_destroy (&dc_struc);
-
+        
         return -1;
     }
     
     dc_destroy (&dc_struc);
-    zstr_free (&path);
     zconfig_destroy (&config_file);
     return 0;
 }
@@ -299,12 +296,12 @@ upt_t
         
     char *dc_name = NULL;
     char *ups = NULL;
-    char *path = NULL;
     
     for (int i = 1; ; i++)
     {
-        path = zsys_sprintf ("dc_list/dc.%d", i);
+        char *path = zsys_sprintf ("dc_list/dc.%d", i);
         dc_name = zconfig_get (config_file, path, NULL);
+        zstr_free (&path);
         if (!dc_name)
             break;
         
@@ -312,6 +309,8 @@ upt_t
         {
             path = zsys_sprintf ("dc_upses/%s/ups.%d", dc_name, j);
             ups = zconfig_get (config_file, path, NULL);
+            zstr_free (&path);
+            
             if (!ups)
                 break;
             zhashx_insert (uptime->ups2dc, ups, (void*) dc_name);
@@ -319,7 +318,6 @@ upt_t
         }
     }
     
-    zstr_free (&path);            
     zstr_free (&dc_name);
     zstr_free (&ups);
     
@@ -422,7 +420,6 @@ upt_test (bool verbose)
     upt_t *uptime2 = upt_new ();
     upt_t *uptime3 = upt_new ();    
     zlistx_t *ups2 = zlistx_new ();
-    
     ups = zlistx_new ();
     
     zlistx_add_end (ups, "UPS007");

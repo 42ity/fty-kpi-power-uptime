@@ -98,12 +98,12 @@ fty_kpi_power_uptime_server_load_state (fty_kpi_power_uptime_server_t *self)
 {
     assert (self);
     assert (self->dir);
-    const char *state_file = zsys_sprintf ("%s/state",self->dir);
+    char *state_file = zsys_sprintf ("%s/state", self->dir);
     
     int rv = upt_save (self->upt, state_file);
     if (rv != 0)
-        return -1;
-
+        zsys_error ("error while saving state file");        
+    zstr_free (&state_file);
     return 0;
 }
 
@@ -116,11 +116,12 @@ fty_kpi_power_uptime_server_save_state (fty_kpi_power_uptime_server_t *self)
         zsys_error ("Saving state directory not configured yet. Probably got some messages before CONFIG.");
         return -1;
     }
-    const char *state_file = zsys_sprintf ("%s/state",self->dir);
+    char *state_file = zsys_sprintf ("%s/state",self->dir);
     int rv = upt_save (self->upt, state_file);
     if (rv != 0)
-        return -1;
-
+        zsys_error ("error while saving state file");
+    
+    zstr_free (&state_file);
     return 0;
 }
 
@@ -536,12 +537,13 @@ fty_kpi_power_uptime_server_test (bool verbose)
         
     // set ups to on battery
     zmsg_t *metric = fty_proto_encode_metric (NULL,
+                                              time (NULL),
+                                              100,
                                               "status.ups",
                                               "roz.ups33",
                                               "16",
-                                              "",
-                                              100,
-                                              time (NULL));
+                                              ""
+                                              );
     
     mlm_client_send (ups, "status.ups@roz.ups33", &metric);
 

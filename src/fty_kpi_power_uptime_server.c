@@ -257,7 +257,7 @@ s_handle_metric (fty_kpi_power_uptime_server_t *server, mlm_client_t *client, ft
 {
     const char *ups_name = fty_proto_name (msg);
     const char *dc_name = upt_dc_name (server->upt, ups_name);    
-    
+
     if (!dc_name)
         return;
 
@@ -550,7 +550,7 @@ fty_kpi_power_uptime_server_test (bool verbose)
                                               "16",
                                               ""
                                               );
-    
+
     mlm_client_send (ups, "status.ups@roz.ups33", &metric);
 
     char *subject2, *command, *total, *offline;

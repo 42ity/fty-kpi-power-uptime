@@ -63,8 +63,8 @@ upt_new ()
     zhashx_set_key_destructor (self->dc, s_str_destructor);
     zhashx_set_destructor (self->dc, s_dc_destructor);
     self->ups2dc = zhashx_new ();
-    zhashx_set_key_duplicator (self->dc, s_str_duplicator);
-    zhashx_set_key_destructor (self->dc, s_str_destructor);
+    zhashx_set_key_duplicator (self->ups2dc, s_str_duplicator);
+    zhashx_set_key_destructor (self->ups2dc, s_str_destructor);
     zhashx_set_duplicator (self->ups2dc, s_str_duplicator);
     zhashx_set_destructor (self->ups2dc, s_str_destructor);
     return self;
@@ -82,7 +82,6 @@ upt_destroy (upt_t **self_p)
     zhashx_destroy (&self->ups2dc);
     free (self);
                     
-
     *self_p = NULL;
 }
 
@@ -231,21 +230,6 @@ FTY_KPI_POWER_UPTIME_EXPORT void
     }
 }
 
-void print_dc (zhashx_t *self)
-{
-    zlistx_t *keys = zhashx_keys (self);
-    assert (keys);
-    char *key = (char *)zlistx_first (keys);
-    printf("vypis klis :\n");
-    while (key) {
-        printf ("klic: %s\n", key);
-        key = (char *) zlistx_next (keys);
-    }
-    zlistx_destroy (&keys);
-    
-        
-}
-
 int
 upt_save (upt_t *self, const char *file_path)    
 {
@@ -258,21 +242,18 @@ upt_save (upt_t *self, const char *file_path)
     
     //self->dc
     dc_t *dc_struc = NULL;
-    print_dc (self->dc);    
-    printf("----> 2.\n");        
-    assert (self->dc);
-    print_dc (self->dc);
+
     for (dc_struc = (dc_t *) zhashx_first (self->dc);
          dc_struc != NULL;
          dc_struc = (dc_t *) zhashx_next (self->dc))
     {
         i = 1;
-        printf("----> 4.\n");            
+        
         // list of datacenters
         char *dc_name = (char*) zhashx_cursor (self->dc);        
         char *path = zsys_sprintf ("dc_list/dc.%d", j);
         zconfig_putf (config_file, path, dc_name);
-        zstr_free(&path);
+        zstr_free (&path);
         
         // self->ups2dc - list of upses for each dc
         for (char *dc = (char*) zhashx_first (self->ups2dc);
@@ -329,13 +310,11 @@ upt_t
             if (!ups)
                 break;
             zhashx_insert (upt->ups2dc, ups, (void*) dc_name);
-
         }
     }
     
     zstr_free (&dc_name);
-    zstr_free (&ups);
-    
+    zstr_free (&ups);    
     zconfig_destroy (&config_file);
     
     return upt;
@@ -431,7 +410,7 @@ upt_test (bool verbose)
 
     //state file - save/load
     const char *file_path = "./state";
-
+    
     upt_t *uptime2 = upt_new ();
     upt_t *uptime3 = upt_new ();    
     zlistx_t *ups2 = zlistx_new ();
@@ -464,6 +443,6 @@ upt_test (bool verbose)
     upt_destroy (&uptime);    
     upt_destroy (&uptime2);    
     upt_destroy (&uptime3);    
-
+   
     printf ("OK\n");
 }

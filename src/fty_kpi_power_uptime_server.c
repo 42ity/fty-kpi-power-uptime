@@ -100,17 +100,15 @@ fty_kpi_power_uptime_server_load_state (fty_kpi_power_uptime_server_t *self)
     assert (self->dir);
     
     char *state_file = zsys_sprintf ("%s/state", self->dir);
-    upt_t *upt = upt_new ();
     
-    upt = upt_load (state_file);
+    upt_t *upt = upt_load (state_file);
     if (!upt)
         zsys_error ("error loading state\n");
     
     zstr_free (&state_file);
-    upt_destroy (&self->upt);
-    
+    upt_destroy (&self->upt);   
     self->upt = upt;    
-    upt_destroy (&upt);    
+
     return 0;
 }
 
@@ -125,7 +123,6 @@ fty_kpi_power_uptime_server_save_state (fty_kpi_power_uptime_server_t *self)
     }
     
     char *state_file = zsys_sprintf ("%s/state", self->dir);
-    printf("----> 1.\n");
     int rv = upt_save (self->upt, state_file);
     if (rv != 0)
     {
@@ -585,7 +582,7 @@ fty_kpi_power_uptime_server_test (bool verbose)
     
     // test for private function only!! UGLY REDONE DO NOT READ!!
     fty_kpi_power_uptime_server_t *s = fty_kpi_power_uptime_server_new ();
-    /*
+
     upt_t *upt = upt_new ();
     zlistx_t *upsl = zlistx_new ();
     
@@ -593,19 +590,16 @@ fty_kpi_power_uptime_server_test (bool verbose)
     zlistx_add_end (upsl, "UPS006");
     r = upt_add (upt, "DC007", upsl);
     assert (r == 0);
-    */
-        
+         
     fty_kpi_power_uptime_server_set_dir (s, "src");
-    zclock_sleep (1000);
+    zclock_sleep (1000);    
     r = fty_kpi_power_uptime_server_save_state(s);
-    assert (r == 0);
-    
+    assert (r == 0);    
     r = fty_kpi_power_uptime_server_load_state (s);
     assert (r == 0);
-    /*
+    
     zlistx_destroy (&upsl);
-    upt_destroy (&upt);    
-    */
+    upt_destroy (&upt);        
     fty_kpi_power_uptime_server_destroy (&s);
     //  @end
     

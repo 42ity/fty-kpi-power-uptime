@@ -412,7 +412,7 @@ upt_test (bool verbose)
     const char *file_path = "./state";
     
     upt_t *uptime2 = upt_new ();
-    upt_t *uptime3 = upt_new ();    
+    //    upt_t *uptime3 = upt_new ();    
     zlistx_t *ups2 = zlistx_new ();
     ups = zlistx_new ();
     
@@ -435,7 +435,7 @@ upt_test (bool verbose)
     r = upt_save (uptime2, file_path);
     assert (r == 0);
     
-    uptime3 = upt_load (file_path);
+    upt_t *uptime3 = upt_load (file_path);
     assert (zhashx_size (uptime3->ups2dc) == (zlistx_size (ups) + zlistx_size (ups2)));
 
     zlistx_destroy (&ups);

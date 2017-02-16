@@ -98,30 +98,42 @@ fty_kpi_power_uptime_server_load_state (fty_kpi_power_uptime_server_t *self)
 {
     assert (self);
     assert (self->dir);
-    char *state_file = zsys_sprintf ("%s/state", self->dir);
     
-    int rv = upt_save (self->upt, state_file);
-    if (rv != 0)
-        zsys_error ("error while saving state file");        
+    char *state_file = zsys_sprintf ("%s/state", self->dir);
+    upt_t *upt = upt_new ();
+    
+    upt = upt_load (state_file);
+    if (!upt)
+        zsys_error ("error loading state\n");
+    
     zstr_free (&state_file);
+    upt_destroy (&self->upt);
+    
+    self->upt = upt;    
+    upt_destroy (&upt);    
     return 0;
 }
-
 
 int
 fty_kpi_power_uptime_server_save_state (fty_kpi_power_uptime_server_t *self)
 {
     assert (self);
+    
     if (!self->dir) {
         zsys_error ("Saving state directory not configured yet. Probably got some messages before CONFIG.");
         return -1;
     }
-    char *state_file = zsys_sprintf ("%s/state",self->dir);
+    
+    char *state_file = zsys_sprintf ("%s/state", self->dir);
+    printf("----> 1.\n");
     int rv = upt_save (self->upt, state_file);
     if (rv != 0)
-        zsys_error ("error while saving state file");
-    
-    zstr_free (&state_file);
+    {
+        zsys_error ("fty_kpi_power_uptime_server_save_state: error while saving state file");
+        zstr_free (&state_file);         
+        return -1;
+    }
+    zstr_free (&state_file); 
     return 0;
 }
 
@@ -129,6 +141,7 @@ static void
 s_set_dc_upses (fty_kpi_power_uptime_server_t *self, fty_proto_t *fmsg)
 {    
     assert (fmsg);
+    assert (self);
     
     const char *dc_name = fty_proto_name (fmsg);
     if (!dc_name)
@@ -159,7 +172,7 @@ s_set_dc_upses (fty_kpi_power_uptime_server_t *self, fty_proto_t *fmsg)
         if (!streq ((char *) it,  "datacenter"))            
             zlistx_add_end (ups, it);
     }
-    
+
     upt_add (self->upt, dc_name, ups);
 
     // recalculate uptime - some modification might have had an impact on a state of DC
@@ -198,7 +211,7 @@ s_handle_uptime (fty_kpi_power_uptime_server_t *server, mlm_client_t *client, zm
                 );
 
     if (r == -1) {
-        zsys_error ("Can't compute uptime, most likely unknown DC");
+        zsys_error ("Can't compute uptime, most likely unknown DC: %s", dc_name);
         mlm_client_sendtox (
             client,
             mlm_client_sender (client),
@@ -472,18 +485,14 @@ fty_kpi_power_uptime_server_test (bool verbose)
         zstr_send (server, "VERBOSE");
         zsock_wait (server);
     }
-
-    int r;
-    r = unlink ("src/state");
-    assert (r == 0 || r == -1);
-
+    
+    zstr_sendx (server, "CONFIG", "src", NULL); 
+    zsock_wait (server);
     zstr_sendx (server, "CONNECT", endpoint, NULL);
     zsock_wait (server);
     zstr_sendx (server, "CONSUMER", "METRICS", "status.ups.*", NULL);
     zsock_wait (server);    
     zstr_sendx (server, "CONSUMER", "ASSETS", "datacenter.unknown@.*", NULL);
-    zsock_wait (server);
-    zstr_sendx (server, "CONFIG", "src/", NULL); 
     zsock_wait (server);
     zstr_sendx (server, "VERBOSE", NULL);
     zsock_wait (server);
@@ -555,13 +564,13 @@ fty_kpi_power_uptime_server_test (bool verbose)
     mlm_client_sendto (ui_metr, "uptime", "UPTIME", NULL, 5000, &req);
 
     zclock_sleep (3000);
-    r = mlm_client_recvx (ui_metr, &subject2, &command, &total, &offline, NULL);
+    int r = mlm_client_recvx (ui_metr, &subject2, &command, &total, &offline, NULL);
     assert (r != -1);
     assert (streq (subject2, "UPTIME"));
     assert (streq (command, "UPTIME"));
     assert (atoi (total) > 0);
     assert (atoi (offline) > 0);
-
+    
     zmsg_destroy (&metric);
     zstr_free (&subject2);
     zstr_free (&command);
@@ -573,13 +582,30 @@ fty_kpi_power_uptime_server_test (bool verbose)
     mlm_client_destroy (&ui_metr);       
     zactor_destroy (&server);
     zactor_destroy (&broker);
-   
+    
     // test for private function only!! UGLY REDONE DO NOT READ!!
     fty_kpi_power_uptime_server_t *s = fty_kpi_power_uptime_server_new ();
+    /*
+    upt_t *upt = upt_new ();
+    zlistx_t *upsl = zlistx_new ();
+    
+    zlistx_add_end (upsl, "UPS007");
+    zlistx_add_end (upsl, "UPS006");
+    r = upt_add (upt, "DC007", upsl);
+    assert (r == 0);
+    */
+        
     fty_kpi_power_uptime_server_set_dir (s, "src");
+    zclock_sleep (1000);
+    r = fty_kpi_power_uptime_server_save_state(s);
+    assert (r == 0);
+    
     r = fty_kpi_power_uptime_server_load_state (s);
     assert (r == 0);
-
+    /*
+    zlistx_destroy (&upsl);
+    upt_destroy (&upt);    
+    */
     fty_kpi_power_uptime_server_destroy (&s);
     //  @end
     

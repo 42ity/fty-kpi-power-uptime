@@ -63,8 +63,8 @@ upt_new ()
     zhashx_set_key_destructor (self->dc, s_str_destructor);
     zhashx_set_destructor (self->dc, s_dc_destructor);
     self->ups2dc = zhashx_new ();
-    zhashx_set_key_duplicator (self->dc, s_str_duplicator);
-    zhashx_set_key_destructor (self->dc, s_str_destructor);
+    zhashx_set_key_duplicator (self->ups2dc, s_str_duplicator);
+    zhashx_set_key_destructor (self->ups2dc, s_str_destructor);
     zhashx_set_duplicator (self->ups2dc, s_str_duplicator);
     zhashx_set_destructor (self->ups2dc, s_str_destructor);
     return self;
@@ -81,12 +81,12 @@ upt_destroy (upt_t **self_p)
     zhashx_destroy (&self->dc);
     zhashx_destroy (&self->ups2dc);
     free (self);
-
+                    
     *self_p = NULL;
 }
 
 int
-upt_add(upt_t *self, const char *dc_name, zlistx_t *ups)
+upt_add (upt_t *self, const char *dc_name, zlistx_t *ups)
 {
     assert (self);
     assert (dc_name);
@@ -161,7 +161,7 @@ upt_set_online (upt_t *self, const char* ups_name)
 {
     assert (self);
     assert (ups_name);
-
+    
     const char *dc_name = upt_dc_name (self, ups_name);
     if (!dc_name)
         return;
@@ -178,7 +178,7 @@ upt_dc_name (upt_t *self, const char* ups_name)
 {
     assert (self);
     assert (ups_name);
-
+    
     char *dc = (char*) zhashx_lookup (self->ups2dc, ups_name);
     if (!dc)
         return NULL;
@@ -231,130 +231,93 @@ FTY_KPI_POWER_UPTIME_EXPORT void
 }
 
 int
-    upt_save (upt_t *self, FILE* fp)
+upt_save (upt_t *self, const char *file_path)    
 {
     assert (self);
-    assert (fp);
+    assert (file_path);
+   
+    zconfig_t *config_file = zconfig_new ("root", NULL);
+    int i = 1;
+    int j = 1;    
+    
+    //self->dc
+    dc_t *dc_struc = NULL;
 
-    zmsg_t *msg = zmsg_new ();
-    if (!msg)
-        return -1;
-
-    zmsg_addstr (msg, "upt0x01");
-
-    zframe_t *frame = zhashx_pack (self->ups2dc);
-
-    if (!frame) {
-        zmsg_destroy (&msg);
-        return -1;
-    }
-
-    zmsg_addmem (msg, zframe_data (frame), zframe_size (frame));
-    zframe_destroy (&frame);
-
-    zmsg_addstrf (msg, "%zu", zhashx_size (self->dc));
-    dc_t *dc = (dc_t*) zhashx_first (self->dc);
-    while (dc)
+    for (dc_struc = (dc_t *) zhashx_first (self->dc);
+         dc_struc != NULL;
+         dc_struc = (dc_t *) zhashx_next (self->dc))
     {
-        char *key = (char*) zhashx_cursor (self->dc);
-        zmsg_addstr (msg, key);
+        i = 1;
+        
+        // list of datacenters
+        char *dc_name = (char*) zhashx_cursor (self->dc);        
+        char *path = zsys_sprintf ("dc_list/dc.%d", j);
+        zconfig_putf (config_file, path, dc_name);
+        zstr_free (&path);
+        
+        // self->ups2dc - list of upses for each dc
+        for (char *dc = (char*) zhashx_first (self->ups2dc);
+             dc != NULL;
+             dc = (char*) zhashx_next (self->ups2dc) )
+        {
+            if (streq (dc, dc_name))
+            {    
+                path = zsys_sprintf ("dc_upses/%s/ups.%d", dc, i);
+                zconfig_putf (config_file, path , "%s", (char*) zhashx_cursor (self->ups2dc));      
+                zstr_free (&path);
+                i++;
+            }            
+        }        
+        j++;
 
-        frame = dc_pack (dc);
-        //TODO: !frame
-        zmsg_addmem (msg, zframe_data (frame), zframe_size (frame));
-        zframe_destroy (&frame);
-        dc = (dc_t*) zhashx_next (self->dc);
-    }
+    } // for 
 
-    int r = zmsg_save (msg, fp);
-    zmsg_destroy (&msg);
-    return r;
+    // save the state file
+    int rv = zconfig_save (config_file, file_path);
+
+    dc_destroy (&dc_struc);
+    zconfig_destroy (&config_file);
+    return rv;
 }
 
-upt_t*
-    upt_load (FILE* fp)
+upt_t
+*upt_load (const char *file_path)
 {
-    assert (fp);
+    upt_t *upt = upt_new ();
 
-    zmsg_t *msg = zmsg_load (NULL, fp);
+    zconfig_t *config_file = zconfig_load (file_path);
+    if (!config_file)
+        return upt;
 
-    if (!msg || !zmsg_is (msg)) {
-        zmsg_destroy (&msg);
-        zsys_error ("upt: can't allocate msg");
-        return NULL;
-    }
-
-    char *magic = zmsg_popstr (msg);
-    if (!magic || !streq (magic, "upt0x01")) {
-        zmsg_destroy (&msg);
-        zsys_error ("upt: invalid magic, expected 'upt0x01', got '%s'", magic);
-        zstr_free (&magic);
-        return NULL;
-    }
-    zstr_free (&magic);
-
-    zframe_t *frame = zmsg_pop (msg);
-    if (!frame) {
-        zmsg_destroy (&msg);
-        zsys_error ("upt: can't decode frame");
-        return NULL;
-    }
-
-    zhashx_t *ups2dc = zhashx_unpack (frame);
-    zframe_destroy (&frame);
-
-    if (!ups2dc) {
-        zmsg_destroy (&msg);
-        zsys_error ("upt: can't unpack to ups2dc hash");
-        return NULL;
-    }
-
-    upt_t *self = upt_new ();
-    zhashx_destroy (&self->ups2dc);
-    self->ups2dc = ups2dc;
-
-    char *s_size = zmsg_popstr (msg);
-    if (!s_size) {
-        upt_destroy (&self);
-        zmsg_destroy (&msg);
-        zsys_error ("upt: missing size specifier");
-        return NULL;
-    }
-
-    size_t size;
-    sscanf (s_size, "%zu", &size);
-    zstr_free (&s_size);
-
-    if (size != 0) {
-
-        size_t i = 0;
-        char *key;
-        dc_t *dc;
-        do {
-            key = zmsg_popstr (msg);
-            if (!key)
+    
+    char *dc_name = NULL;
+    char *ups = NULL;
+    
+    for (int i = 1; ; i++)
+    {
+        char *path = zsys_sprintf ("dc_list/dc.%d", i);
+        dc_name = zconfig_get (config_file, path, NULL);
+        zstr_free (&path);
+        if (!dc_name)
+            break;
+        
+        for (int j = 1; ; j++)
+        {
+            path = zsys_sprintf ("dc_upses/%s/ups.%d", dc_name, j);
+            ups = zconfig_get (config_file, path, NULL);
+            zstr_free (&path);
+            
+            if (!ups)
                 break;
-            frame = zmsg_pop (msg);
-            if (!frame) {
-                zstr_free (&key);
-                break;
-            }
-            dc = dc_unpack (frame);
-            if (!dc) {
-                zframe_destroy (&frame);
-                zstr_free (&key);
-                break;
-            }
-            zhashx_insert (self->dc, key, dc);
-            zframe_destroy (&frame);
-            zstr_free (&key);
-            i++;
-        } while (i != size);
-
+            zhashx_insert (upt->ups2dc, ups, (void*) dc_name);
+        }
     }
-    zmsg_destroy (&msg);
-
-    return self;
+    
+    zstr_free (&dc_name);
+    zstr_free (&ups);    
+    zconfig_destroy (&config_file);
+    
+    return upt;
 }
 
 //  --------------------------------------------------------------------------
@@ -364,7 +327,7 @@ void
 upt_test (bool verbose)
 {
     printf (" * upt: ");
-
+    
     //  @selftest
     upt_t *uptime = upt_new ();
     assert (uptime);
@@ -438,34 +401,48 @@ upt_test (bool verbose)
     ups = zlistx_new ();
     zlistx_add_end (ups, "UPS007");
     r = upt_add (uptime, "DC007", ups);
+    
     assert (r == 0);
     zlistx_destroy (&ups);
 
     dc_name = upt_dc_name (uptime, "UPS001");
     assert (!dc_name);
 
-    upt_destroy (&uptime);
-    r = unlink ("src/state");
-    assert (r == 0 || r == -1);
-
-    //save/load
-    uptime = upt_new ();
-    FILE *fp = fopen ("src/state", "w");
-    upt_save (uptime, fp);
-    fflush (fp);
-    fclose (fp);
-
-    FILE *fp2 = fopen ("src/state", "r");
-    upt_t *uptime2 = upt_load(fp2);
-    fclose (fp2);
-    assert (uptime2);
-
-    upt_destroy (&uptime2);
-    upt_destroy (&uptime);
-
-    r = unlink ("src/state");
+    //state file - save/load
+    const char *file_path = "./state";
+    
+    upt_t *uptime2 = upt_new ();
+    //    upt_t *uptime3 = upt_new ();    
+    zlistx_t *ups2 = zlistx_new ();
+    ups = zlistx_new ();
+    
+    zlistx_add_end (ups, "UPS007");
+    zlistx_add_end (ups, "UPS006");
+    zlistx_add_end (ups, "UPS005");    
+    zlistx_add_end (ups2, "UPS001");
+    zlistx_add_end (ups2, "UPS002");
+    zlistx_add_end (ups2, "UPS003");
+    
+    r = upt_add (uptime2, "DC007", ups);
     assert (r == 0);
-    //  @end
+    r = upt_add (uptime2, "DC006", ups2);    
+    assert (r == 0);
 
+    zlistx_add_end (ups2, "UPS033");
+    r = upt_add (uptime2, "DC006", ups2);    
+    assert (r == 0);
+    
+    r = upt_save (uptime2, file_path);
+    assert (r == 0);
+    
+    upt_t *uptime3 = upt_load (file_path);
+    assert (zhashx_size (uptime3->ups2dc) == (zlistx_size (ups) + zlistx_size (ups2)));
+
+    zlistx_destroy (&ups);
+    zlistx_destroy (&ups2);
+    upt_destroy (&uptime);    
+    upt_destroy (&uptime2);    
+    upt_destroy (&uptime3);    
+   
     printf ("OK\n");
 }

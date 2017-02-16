@@ -45,7 +45,7 @@ FTY_KPI_POWER_UPTIME_EXPORT void
     upt_print (upt_t *self);
 
 int
-upt_add(upt_t *self, const char *dc_name, zlistx_t *ups_p);
+upt_add (upt_t *self, const char *dc_name, zlistx_t *ups_p);
 
 bool
 upt_is_offline (upt_t *self, const char* dc_name);
@@ -64,14 +64,14 @@ int
 
 //save upt_t to file
 int
-    upt_save (upt_t *self, FILE* fp);
+    upt_save (upt_t *self, const char *file_path);
 
 FTY_KPI_POWER_UPTIME_EXPORT void
     upt_print (upt_t* self);
 
 // load upt_t from file
 FTY_KPI_POWER_UPTIME_EXPORT upt_t*
-    upt_load (FILE* fp);
+upt_load (const char *file_path);
 
 //  Self test of this class
 FTY_KPI_POWER_UPTIME_EXPORT void

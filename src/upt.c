@@ -81,7 +81,7 @@ upt_destroy (upt_t **self_p)
     zhashx_destroy (&self->dc);
     zhashx_destroy (&self->ups2dc);
     free (self);
-                    
+
     *self_p = NULL;
 }
 
@@ -161,7 +161,7 @@ upt_set_online (upt_t *self, const char* ups_name)
 {
     assert (self);
     assert (ups_name);
-    
+
     const char *dc_name = upt_dc_name (self, ups_name);
     if (!dc_name)
         return;
@@ -178,7 +178,7 @@ upt_dc_name (upt_t *self, const char* ups_name)
 {
     assert (self);
     assert (ups_name);
-    
+
     char *dc = (char*) zhashx_lookup (self->ups2dc, ups_name);
     if (!dc)
         return NULL;
@@ -231,15 +231,15 @@ FTY_KPI_POWER_UPTIME_EXPORT void
 }
 
 int
-upt_save (upt_t *self, const char *file_path)    
+upt_save (upt_t *self, const char *file_path)
 {
     assert (self);
     assert (file_path);
-   
+
     zconfig_t *config_file = zconfig_new ("root", NULL);
     int i = 1;
-    int j = 1;    
-    
+    int j = 1;
+
     //self->dc
     dc_t *dc_struc = NULL;
 
@@ -248,29 +248,29 @@ upt_save (upt_t *self, const char *file_path)
          dc_struc = (dc_t *) zhashx_next (self->dc))
     {
         i = 1;
-        
+
         // list of datacenters
-        char *dc_name = (char*) zhashx_cursor (self->dc);        
+        char *dc_name = (char*) zhashx_cursor (self->dc);
         char *path = zsys_sprintf ("dc_list/dc.%d", j);
         zconfig_putf (config_file, path, dc_name);
         zstr_free (&path);
-        
+
         // self->ups2dc - list of upses for each dc
         for (char *dc = (char*) zhashx_first (self->ups2dc);
              dc != NULL;
              dc = (char*) zhashx_next (self->ups2dc) )
         {
             if (streq (dc, dc_name))
-            {    
+            {
                 path = zsys_sprintf ("dc_upses/%s/ups.%d", dc, i);
-                zconfig_putf (config_file, path , "%s", (char*) zhashx_cursor (self->ups2dc));      
+                zconfig_putf (config_file, path , "%s", (char*) zhashx_cursor (self->ups2dc));
                 zstr_free (&path);
                 i++;
-            }            
-        }        
+            }
+        }
         j++;
 
-    } // for 
+    } // for
 
     // save the state file
     int rv = zconfig_save (config_file, file_path);
@@ -289,10 +289,10 @@ upt_t
     if (!config_file)
         return upt;
 
-    
+
     char *dc_name = NULL;
     char *ups = NULL;
-    
+
     for (int i = 1; ; i++)
     {
         char *path = zsys_sprintf ("dc_list/dc.%d", i);
@@ -300,23 +300,23 @@ upt_t
         zstr_free (&path);
         if (!dc_name)
             break;
-        
+
         for (int j = 1; ; j++)
         {
             path = zsys_sprintf ("dc_upses/%s/ups.%d", dc_name, j);
             ups = zconfig_get (config_file, path, NULL);
             zstr_free (&path);
-            
+
             if (!ups)
                 break;
             zhashx_insert (upt->ups2dc, ups, (void*) dc_name);
         }
     }
-    
+
     zstr_free (&dc_name);
-    zstr_free (&ups);    
+    zstr_free (&ups);
     zconfig_destroy (&config_file);
-    
+
     return upt;
 }
 
@@ -327,7 +327,25 @@ void
 upt_test (bool verbose)
 {
     printf (" * upt: ");
-    
+
+    // Note: If your selftest reads SCMed fixture data, please keep it in
+    // src/selftest-ro; if your test creates filesystem objects, please
+    // do so under src/selftest-rw. They are defined below along with a
+    // usecase (asert) to make compilers happy.
+    const char *SELFTEST_DIR_RO = "src/selftest-ro";
+    const char *SELFTEST_DIR_RW = "src/selftest-rw";
+    assert (SELFTEST_DIR_RO);
+    assert (SELFTEST_DIR_RW);
+    // std::string str_SELFTEST_DIR_RO = std::string(SELFTEST_DIR_RO);
+    // std::string str_SELFTEST_DIR_RW = std::string(SELFTEST_DIR_RW);
+
+    //state file - save/load
+    // TODO: Should this be same or different as "src/state" file
+    // made by fty_kpi_power_uptime_server.c logic and tests?
+    // Originally they were "./state" and "./src/state" so I kept them different
+    char *state_file = zsys_sprintf ("%s/state-upt", SELFTEST_DIR_RW);
+    assert (state_file != NULL);
+
     //  @selftest
     upt_t *uptime = upt_new ();
     assert (uptime);
@@ -401,48 +419,47 @@ upt_test (bool verbose)
     ups = zlistx_new ();
     zlistx_add_end (ups, "UPS007");
     r = upt_add (uptime, "DC007", ups);
-    
+
     assert (r == 0);
     zlistx_destroy (&ups);
 
     dc_name = upt_dc_name (uptime, "UPS001");
     assert (!dc_name);
 
-    //state file - save/load
-    const char *file_path = "./state";
-    
     upt_t *uptime2 = upt_new ();
-    //    upt_t *uptime3 = upt_new ();    
+    //    upt_t *uptime3 = upt_new ();
     zlistx_t *ups2 = zlistx_new ();
     ups = zlistx_new ();
-    
+
     zlistx_add_end (ups, "UPS007");
     zlistx_add_end (ups, "UPS006");
-    zlistx_add_end (ups, "UPS005");    
+    zlistx_add_end (ups, "UPS005");
     zlistx_add_end (ups2, "UPS001");
     zlistx_add_end (ups2, "UPS002");
     zlistx_add_end (ups2, "UPS003");
-    
+
     r = upt_add (uptime2, "DC007", ups);
     assert (r == 0);
-    r = upt_add (uptime2, "DC006", ups2);    
+    r = upt_add (uptime2, "DC006", ups2);
     assert (r == 0);
 
     zlistx_add_end (ups2, "UPS033");
-    r = upt_add (uptime2, "DC006", ups2);    
+    r = upt_add (uptime2, "DC006", ups2);
     assert (r == 0);
-    
-    r = upt_save (uptime2, file_path);
+
+    r = upt_save (uptime2, state_file);
     assert (r == 0);
-    
-    upt_t *uptime3 = upt_load (file_path);
+
+    upt_t *uptime3 = upt_load (state_file);
     assert (zhashx_size (uptime3->ups2dc) == (zlistx_size (ups) + zlistx_size (ups2)));
+
+    zstr_free (&state_file);
 
     zlistx_destroy (&ups);
     zlistx_destroy (&ups2);
-    upt_destroy (&uptime);    
-    upt_destroy (&uptime2);    
-    upt_destroy (&uptime3);    
-   
+    upt_destroy (&uptime);
+    upt_destroy (&uptime2);
+    upt_destroy (&uptime3);
+
     printf ("OK\n");
 }

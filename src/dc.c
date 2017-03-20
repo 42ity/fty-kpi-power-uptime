@@ -292,7 +292,7 @@ dc_test (bool verbose)
     dc_uptime (dc, &total, &offline);
     printf ("total:  %"PRIi64, total);
     printf ("offline:  %"PRIi64, offline);
-    
+
     assert (total > 1);
     assert (offline > 1);
 

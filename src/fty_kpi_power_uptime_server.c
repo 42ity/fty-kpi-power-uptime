@@ -457,6 +457,17 @@ fty_kpi_power_uptime_server_test (bool verbose)
     if (verbose)
         printf ("\n");
 
+    // Note: If your selftest reads SCMed fixture data, please keep it in
+    // src/selftest-ro; if your test creates filesystem objects, please
+    // do so under src/selftest-rw. They are defined below along with a
+    // usecase (asert) to make compilers happy.
+    const char *SELFTEST_DIR_RO = "src/selftest-ro";
+    const char *SELFTEST_DIR_RW = "src/selftest-rw";
+    assert (SELFTEST_DIR_RO);
+    assert (SELFTEST_DIR_RW);
+    // std::string str_SELFTEST_DIR_RO = std::string(SELFTEST_DIR_RO);
+    // std::string str_SELFTEST_DIR_RW = std::string(SELFTEST_DIR_RW);
+
     //  @selftest
     static const char* endpoint = "inproc://upt-server-test";
     zactor_t *broker = zactor_new (mlm_server, "Malamute");
@@ -483,7 +494,7 @@ fty_kpi_power_uptime_server_test (bool verbose)
         zsock_wait (server);
     }
 
-    zstr_sendx (server, "CONFIG", "src", NULL);
+    zstr_sendx (server, "CONFIG", SELFTEST_DIR_RW, NULL);
     zsock_wait (server);
     zstr_sendx (server, "CONNECT", endpoint, NULL);
     zsock_wait (server);
@@ -591,7 +602,7 @@ fty_kpi_power_uptime_server_test (bool verbose)
     r = upt_add (upt, "DC007", upsl);
     assert (r == 0);
 
-    fty_kpi_power_uptime_server_set_dir (s, "src");
+    fty_kpi_power_uptime_server_set_dir (s, SELFTEST_DIR_RW);
     zclock_sleep (1000);
     r = fty_kpi_power_uptime_server_save_state(s);
     assert (r == 0);

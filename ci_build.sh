@@ -320,7 +320,14 @@ if [ "$BUILD_TYPE" == "default" ] || [ "$BUILD_TYPE" == "default-Werror" ] || [ 
     git status -s || true
     echo "==="
 
-    make check
+    (
+        export DISTCHECK_CONFIGURE_FLAGS="--enable-drafts=yes ${CONFIG_OPTS[@]}"
+        $CI_TIME make VERBOSE=1 DISTCHECK_CONFIGURE_FLAGS="$DISTCHECK_CONFIGURE_FLAGS" distcheck
+
+        echo "=== Are GitIgnores good after 'make distcheck' with drafts? (should have no output below)"
+        git status -s || true
+        echo "==="
+    )
 
     # Build and check this project without DRAFT APIs
     echo ""
@@ -333,7 +340,10 @@ if [ "$BUILD_TYPE" == "default" ] || [ "$BUILD_TYPE" == "default-Werror" ] || [ 
         $CI_TIME ./autogen.sh 2> /dev/null
         $CI_TIME ./configure --enable-drafts=no "${CONFIG_OPTS[@]}" --with-docs=yes
         $CI_TIME make VERBOSE=1 all || exit $?
-        make check
+        (
+            export DISTCHECK_CONFIGURE_FLAGS="--enable-drafts=no ${CONFIG_OPTS[@]} --with-docs=yes" && \
+            $CI_TIME make VERBOSE=1 DISTCHECK_CONFIGURE_FLAGS="$DISTCHECK_CONFIGURE_FLAGS" distcheck || exit $?
+        )
     ) || exit 1
     [ -z "$CI_TIME" ] || echo "`date`: Builds completed without fatal errors!"
 

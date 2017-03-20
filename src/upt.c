@@ -328,6 +328,24 @@ upt_test (bool verbose)
 {
     printf (" * upt: ");
 
+    // Note: If your selftest reads SCMed fixture data, please keep it in
+    // src/selftest-ro; if your test creates filesystem objects, please
+    // do so under src/selftest-rw. They are defined below along with a
+    // usecase (asert) to make compilers happy.
+    const char *SELFTEST_DIR_RO = "src/selftest-ro";
+    const char *SELFTEST_DIR_RW = "src/selftest-rw";
+    assert (SELFTEST_DIR_RO);
+    assert (SELFTEST_DIR_RW);
+    // std::string str_SELFTEST_DIR_RO = std::string(SELFTEST_DIR_RO);
+    // std::string str_SELFTEST_DIR_RW = std::string(SELFTEST_DIR_RW);
+
+    //state file - save/load
+    // TODO: Should this be same or different as "src/state" file
+    // made by fty_kpi_power_uptime_server.c logic and tests?
+    // Originally they were "./state" and "./src/state" so I kept them different
+    char *state_file = zsys_sprintf ("%s/state-upt", SELFTEST_DIR_RW);
+    assert (state_file != NULL);
+
     //  @selftest
     upt_t *uptime = upt_new ();
     assert (uptime);
@@ -408,9 +426,6 @@ upt_test (bool verbose)
     dc_name = upt_dc_name (uptime, "UPS001");
     assert (!dc_name);
 
-    //state file - save/load
-    const char *file_path = "./state";
-
     upt_t *uptime2 = upt_new ();
     //    upt_t *uptime3 = upt_new ();
     zlistx_t *ups2 = zlistx_new ();
@@ -432,11 +447,13 @@ upt_test (bool verbose)
     r = upt_add (uptime2, "DC006", ups2);
     assert (r == 0);
 
-    r = upt_save (uptime2, file_path);
+    r = upt_save (uptime2, state_file);
     assert (r == 0);
 
-    upt_t *uptime3 = upt_load (file_path);
+    upt_t *uptime3 = upt_load (state_file);
     assert (zhashx_size (uptime3->ups2dc) == (zlistx_size (ups) + zlistx_size (ups2)));
+
+    zstr_free (&state_file);
 
     zlistx_destroy (&ups);
     zlistx_destroy (&ups2);

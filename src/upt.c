@@ -252,7 +252,7 @@ upt_save (upt_t *self, const char *file_path)
         // list of datacenters
         char *dc_name = (char*) zhashx_cursor (self->dc);
         char *path = zsys_sprintf ("dc_list/dc.%d", j);
-        zconfig_putf (config_file, path, dc_name);
+        zconfig_putf (config_file, path, "%s", dc_name);
         zstr_free (&path);
 
         // self->ups2dc - list of upses for each dc

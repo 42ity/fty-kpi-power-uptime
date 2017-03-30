@@ -12,7 +12,7 @@ Name: libfty_kpi_power_uptime
 Description: Compute Data Center uptime
 Version: @VERSION@
 
-Requires:@pkgconfig_name_libzmq@ @pkgconfig_name_libczmq@ @pkgconfig_name_libmlm@ @pkgconfig_name_libfty_proto@ >= 1.0.0
+Requires:@pkgconfig_name_libzmq@ @pkgconfig_name_libczmq@ >= 3.0.2 @pkgconfig_name_libmlm@ @pkgconfig_name_libfty_proto@ >= 1.0.0
 
 Libs: -L${libdir} -lfty_kpi_power_uptime
 Cflags: -I${includedir} @pkg_config_defines@

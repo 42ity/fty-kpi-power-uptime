@@ -616,4 +616,3 @@ fty_kpi_power_uptime_server_test (bool verbose)
 
     printf ("OK\n");
 }
-

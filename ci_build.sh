@@ -210,6 +210,7 @@ if [ "$BUILD_TYPE" == "default" ] || [ "$BUILD_TYPE" == "default-Werror" ] || [ 
         echo ""
         BASE_PWD=${PWD}
         echo "`date`: INFO: Building prerequisite 'czmq' from Git repository..." >&2
+
 ### NOTE: Manual edit
 case "$CI_CZMQ_VER" in
 3)
@@ -219,6 +220,7 @@ case "$CI_CZMQ_VER" in
         $CI_TIME git clone --quiet --depth 1 https://github.com/zeromq/czmq.git czmq
 ;;
 esac
+
         cd czmq
         CCACHE_BASEDIR=${PWD}
         export CCACHE_BASEDIR

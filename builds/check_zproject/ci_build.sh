@@ -8,7 +8,17 @@ set -ex
 # Verify all required dependencies with repos can be checked out
 cd "$REPO_DIR/.."
 git clone --quiet --depth 1 https://github.com/zeromq/libzmq.git libzmq
-git clone --quiet --depth 1 -b v3.0.2 https://github.com/42ity/czmq.git czmq
+
+### NOTE: Manual edit
+case "$CI_CZMQ_VER" in
+3)
+git clone --quiet -b v3.0.2 --depth 1 https://github.com/42ity/czmq.git czmq
+;;
+4|*)
+git clone --quiet --depth 1 https://github.com/zeromq/czmq.git czmq
+;;
+esac
+
 git clone --quiet --depth 1 https://github.com/zeromq/malamute.git malamute
 git clone --quiet --depth 1 https://github.com/42ity/fty-proto fty-proto
 cd -

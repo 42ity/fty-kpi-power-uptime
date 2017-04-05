@@ -157,16 +157,28 @@ dc_pack (dc_t *self)
         ups = (char*) zlistx_next (self->ups);
     }
 
+#if CZMQ_VERSION_MAJOR == 3
     byte *buffer;
     size_t size = zmsg_encode (msg, &buffer);
 
-    if (size == 0 || !buffer) {
+    if (!buffer) {
+        zmsg_destroy (&msg);
+        return NULL;
+    }
+#else
+    zframe_t *frame = zmsg_encode (msg);
+    size_t size = zframe_size (frame);
+#endif
+
+    if (size == 0) {
         zmsg_destroy (&msg);
         return NULL;
     }
 
+#if CZMQ_VERSION_MAJOR == 3
     zframe_t *frame = zframe_new (buffer, size);
     free (buffer);
+#endif
     zmsg_destroy (&msg);
 
     return frame;
@@ -177,7 +189,11 @@ dc_unpack (zframe_t *frame)
 {
     assert (frame);
 
+#if CZMQ_VERSION_MAJOR == 3
     zmsg_t *msg = zmsg_decode (zframe_data (frame), zframe_size (frame));
+#else
+    zmsg_t *msg = zmsg_decode (frame);
+#endif
 
     if (!msg)
         return NULL;

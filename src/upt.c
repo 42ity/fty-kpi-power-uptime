@@ -452,6 +452,7 @@ upt_test (bool verbose)
 
     upt_t *uptime3 = upt_load (state_file);
     assert (zhashx_size (uptime3->ups2dc) == (zlistx_size (ups) + zlistx_size (ups2)));
+    assert (zhashx_size (uptime3->dc) == 2);
 
     zstr_free (&state_file);
 

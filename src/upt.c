@@ -301,6 +301,9 @@ upt_t
         if (!dc_name)
             break;
 
+        dc_t *dc = dc_new ();
+        zhashx_insert (upt->dc, dc_name, dc);
+
         for (int j = 1; ; j++)
         {
             path = zsys_sprintf ("dc_upses/%s/ups.%d", dc_name, j);

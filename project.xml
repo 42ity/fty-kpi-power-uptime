@@ -16,8 +16,7 @@
     <version major = "1" minor = "0" patch = "0" />
     <abi current = "1" revision = "0" age = "0" />
 
-    <use project = "czmq" release = "v3.0.2"
-        repository="https://github.com/42ity/czmq.git"/>
+    <use project = "czmq" min_major = "3" min_minor = "0" min_patch = "2" />
     <use project = "malamute" />
 
     <use project = "fty-proto" libname = "libfty_proto" header="ftyproto.h"

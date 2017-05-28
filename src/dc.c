@@ -157,17 +157,27 @@ dc_pack (dc_t *self)
         ups = (char*) zlistx_next (self->ups);
     }
 
+/* Note: the CZMQ_VERSION_MAJOR comparisons below actually assume versions
+ * we know and care about - v3.0.2 (our legacy default, already obsoleted
+ * by upstream), and v4.x that is in current upstream master. If the API
+ * evolves later (incompatibly), these macros will need to be amended.
+ */
+    size_t size = 0;    // Note: the zmsg_encode() and zframe_size()
+                        // below return a platform-dependent size_t,
+                        // and unlike some other similar code, here we
+                        // do not use fixed uint64_t due to protocol
+    zframe_t *frame = NULL;
 #if CZMQ_VERSION_MAJOR == 3
     byte *buffer;
-    size_t size = zmsg_encode (msg, &buffer);
+    size = zmsg_encode (msg, &buffer);
 
     if (!buffer) {
         zmsg_destroy (&msg);
         return NULL;
     }
 #else
-    zframe_t *frame = zmsg_encode (msg);
-    size_t size = zframe_size (frame);
+    frame = zmsg_encode (msg);
+    size = zframe_size (frame);
 #endif
 
     if (size == 0) {
@@ -176,7 +186,7 @@ dc_pack (dc_t *self)
     }
 
 #if CZMQ_VERSION_MAJOR == 3
-    zframe_t *frame = zframe_new (buffer, size);
+    frame = zframe_new (buffer, size);
     free (buffer);
 #endif
     zmsg_destroy (&msg);
@@ -189,10 +199,11 @@ dc_unpack (zframe_t *frame)
 {
     assert (frame);
 
+    zmsg_t *msg = NULL;
 #if CZMQ_VERSION_MAJOR == 3
-    zmsg_t *msg = zmsg_decode (zframe_data (frame), zframe_size (frame));
+    msg = zmsg_decode (zframe_data (frame), zframe_size (frame));
 #else
-    zmsg_t *msg = zmsg_decode (frame);
+    msg = zmsg_decode (frame);
 #endif
 
     if (!msg)

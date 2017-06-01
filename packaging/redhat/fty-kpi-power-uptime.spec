@@ -114,6 +114,8 @@ find %{buildroot} -name '*.la' | xargs rm -f
 %doc COPYING
 %{_bindir}/fty-kpi-power-uptime
 %{_mandir}/man1/fty-kpi-power-uptime*
+%{_bindir}/fty-kpi-power-uptime-convert
+%{_mandir}/man1/fty-kpi-power-uptime-convert*
 %config(noreplace) %{_sysconfdir}/fty-kpi-power-uptime/fty-kpi-power-uptime.cfg
 /usr/lib/systemd/system/fty-kpi-power-uptime.service
 %dir %{_sysconfdir}/fty-kpi-power-uptime

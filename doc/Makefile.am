@@ -6,7 +6,7 @@
 all-local: doc
 
 # Public programs ("main" tags in project.xml), auto-regenerated:
-MAN1 = fty-kpi-power-uptime.1
+MAN1 = fty-kpi-power-uptime.1 fty-kpi-power-uptime-convert.1
 # Public classes ("class" tags in project.xml), auto-regenerated:
 MAN3 = fty_kpi_power_uptime_server.3
 # Project overview, written by a human after initial skeleton:
@@ -71,6 +71,10 @@ fty_kpi_power_uptime_server.txt: $(top_srcdir)/src/fty_kpi_power_uptime_server.c
 GENERATED_DOCS += fty-kpi-power-uptime.txt fty-kpi-power-uptime.doc
 fty-kpi-power-uptime.txt: $(top_srcdir)/src/fty_kpi_power_uptime.c
 	"$(srcdir)/mkman" "fty_kpi_power_uptime" "$(builddir)/fty-kpi-power-uptime.txt" "$(srcdir)/.."
+
+GENERATED_DOCS += fty-kpi-power-uptime-convert.txt fty-kpi-power-uptime-convert.doc
+fty-kpi-power-uptime-convert.txt: $(top_srcdir)/src/fty_kpi_power_uptime_convert.c
+	"$(srcdir)/mkman" "fty_kpi_power_uptime_convert" "$(builddir)/fty-kpi-power-uptime-convert.txt" "$(srcdir)/.."
 
 
 clean:

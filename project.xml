@@ -33,4 +33,5 @@
     <main name = "fty-kpi-power-uptime" service = "1">
         Main daemon
     </main>
+    <main name = "fty-kpi-power-uptime-convert">Converts old binary format state file into new zpl format state file</main>
 </project>

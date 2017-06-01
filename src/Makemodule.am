@@ -74,6 +74,13 @@ systemdsystemunit_DATA += src/fty-kpi-power-uptime.service
 endif #WITH_SYSTEMD_UNITS
 endif #ENABLE_FTY_KPI_POWER_UPTIME
 
+if ENABLE_FTY_KPI_POWER_UPTIME_CONVERT
+bin_PROGRAMS += src/fty-kpi-power-uptime-convert
+src_fty_kpi_power_uptime_convert_CPPFLAGS = ${AM_CPPFLAGS}
+src_fty_kpi_power_uptime_convert_LDADD = ${program_libs}
+src_fty_kpi_power_uptime_convert_SOURCES = src/fty_kpi_power_uptime_convert.c
+endif #ENABLE_FTY_KPI_POWER_UPTIME_CONVERT
+
 if ENABLE_FTY_KPI_POWER_UPTIME_SELFTEST
 check_PROGRAMS += src/fty_kpi_power_uptime_selftest
 noinst_PROGRAMS += src/fty_kpi_power_uptime_selftest
@@ -85,6 +92,7 @@ endif #ENABLE_FTY_KPI_POWER_UPTIME_SELFTEST
 # define custom target for all products of /src
 src: \
 		src/fty-kpi-power-uptime \
+		src/fty-kpi-power-uptime-convert \
 		src/fty_kpi_power_uptime_selftest \
 		src/libfty_kpi_power_uptime.la
 

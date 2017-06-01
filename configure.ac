@@ -53,6 +53,7 @@ AC_PROG_AWK
 PKG_PROG_PKG_CONFIG
 
 # Code coverage
+AC_MSG_CHECKING([whether to enable GCov])
 AC_ARG_WITH(gcov, [AS_HELP_STRING([--with-gcov=yes/no],
                   [With GCC Code Coverage reporting])],
                   [FTY_KPI_POWER_UPTIME_GCOV="$withval"])
@@ -64,8 +65,27 @@ if test "x${FTY_KPI_POWER_UPTIME_GCOV}" == "xyes"; then
         CFLAGS="${CFLAGS} ${FTY_KPI_POWER_UPTIME_ORIG_CFLAGS}"
     fi
     AM_CONDITIONAL(WITH_GCOV, true)
+    AC_MSG_RESULT([yes])
 else
     AM_CONDITIONAL(WITH_GCOV, false)
+    AC_MSG_RESULT([no])
+fi
+
+# Memory mis-use detection
+AC_MSG_CHECKING([whether to enable ASan])
+AC_ARG_ENABLE(address-sanitizer, [AS_HELP_STRING([--enable-address-sanitizer=yes/no],
+                  [Build with GCC Address Sanitizer instrumentation])],
+                  [FTY_KPI_POWER_UPTIME_ASAN="$enableval"])
+
+if test "x${FTY_KPI_POWER_UPTIME_ASAN}" == "xyes"; then
+    CFLAGS="${CFLAGS} -fsanitize=address"
+    CXXFLAGS="${CXXFLAGS} -fsanitize=address"
+
+    AM_CONDITIONAL(ENABLE_ASAN, true)
+    AC_MSG_RESULT([yes])
+else
+    AM_CONDITIONAL(ENABLE_ASAN, false)
+    AC_MSG_RESULT([no])
 fi
 
 # Set pkgconfigdir
@@ -640,6 +660,16 @@ AC_ARG_ENABLE([fty-kpi-power-uptime],
 
 AM_CONDITIONAL([ENABLE_FTY_KPI_POWER_UPTIME], [test x$enable_fty_kpi_power_uptime != xno])
 AM_COND_IF([ENABLE_FTY_KPI_POWER_UPTIME], [AC_MSG_NOTICE([ENABLE_FTY_KPI_POWER_UPTIME defined])])
+
+# Check for fty-kpi-power-uptime-convert intent
+AC_ARG_ENABLE([fty-kpi-power-uptime-convert],
+    AS_HELP_STRING([--enable-fty-kpi-power-uptime-convert],
+        [Compile and install 'fty-kpi-power-uptime-convert' [default=yes]]),
+    [enable_fty_kpi_power_uptime_convert=$enableval],
+    [enable_fty_kpi_power_uptime_convert=yes])
+
+AM_CONDITIONAL([ENABLE_FTY_KPI_POWER_UPTIME_CONVERT], [test x$enable_fty_kpi_power_uptime_convert != xno])
+AM_COND_IF([ENABLE_FTY_KPI_POWER_UPTIME_CONVERT], [AC_MSG_NOTICE([ENABLE_FTY_KPI_POWER_UPTIME_CONVERT defined])])
 
 # Check for fty_kpi_power_uptime_selftest intent
 AC_ARG_ENABLE([fty_kpi_power_uptime_selftest],

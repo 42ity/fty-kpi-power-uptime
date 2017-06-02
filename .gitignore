@@ -24,6 +24,8 @@ save.xml
 src/fty-kpi-power-uptime_selftest
 src/fty-kpi-power-uptime
 src/fty_kpi_power_uptime_selftest
+src/fty-kpi-power-uptime-convert
+src/fty_kpi_power_uptime_convert
 *.exe
 *.out
 *.app

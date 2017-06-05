@@ -167,13 +167,16 @@ s_set_dc_upses (fty_kpi_power_uptime_server_t *self, fty_proto_t *fmsg)
         if (item)
         {
             zlistx_add_end (ups, item);
+
             if (self->verbose)
                 zsys_debug ("%s:\ts_set_dc_upses : %s", self->name, (char *) item);
         }
         else
+        {
             if (self->verbose)
-                zsys_info ("s_set_dc_upses: no ups found in zmessage");
-        zstr_free (&key);
+                zsys_info ("s_set_dc_upses: not relevant item");
+        }
+            zstr_free (&key);
     }
 
     if (zlistx_size (ups) != 0)
@@ -453,7 +456,6 @@ exit:
     fty_kpi_power_uptime_server_destroy (&server);
 }
 
-
 //  --------------------------------------------------------------------------
 //  Self test of this class
 
@@ -520,7 +522,7 @@ fty_kpi_power_uptime_server_test (bool verbose)
     zhash_insert (aux, "ups2", (void* ) "roz.ups36");
     zhash_insert (aux, "ups3", (void* ) "roz.ups38");
     zhash_insert (aux, "type", (void* ) "datacenter");
-
+    zhash_insert (aux, "test", (void* ) "test");
     zmsg_t *msg = fty_proto_encode_asset (
         aux,
         "my-dc",
@@ -546,6 +548,7 @@ fty_kpi_power_uptime_server_test (bool verbose)
     zhash_insert (aux2, "ups1", (void* ) "roz.ups33");
     zhash_insert (aux2, "ups2", (void* ) "roz.ups36");
     zhash_insert (aux2, "ups3", (void* ) "roz.ups38");
+    zhash_insert (aux2, "test", (void* ) "test");
     zhash_insert (aux2, "type", (void* ) "datacenter");
 
     zmsg_t *msg2 = fty_proto_encode_asset (

@@ -1,21 +1,21 @@
 /*  =========================================================================
     fty_kpi_power_uptime_convert - Converts old binary format state file into new zpl format state file
 
-    Copyright (C) 2014 - 2017 Eaton                                        
-                                                                           
-    This program is free software; you can redistribute it and/or modify   
-    it under the terms of the GNU General Public License as published by   
-    the Free Software Foundation; either version 2 of the License, or      
-    (at your option) any later version.                                    
-                                                                           
-    This program is distributed in the hope that it will be useful,        
-    but WITHOUT ANY WARRANTY; without even the implied warranty of         
-    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the          
-    GNU General Public License for more details.                           
-                                                                           
+    Copyright (C) 2014 - 2017 Eaton
+
+    This program is free software; you can redistribute it and/or modify
+    it under the terms of the GNU General Public License as published by
+    the Free Software Foundation; either version 2 of the License, or
+    (at your option) any later version.
+
+    This program is distributed in the hope that it will be useful,
+    but WITHOUT ANY WARRANTY; without even the implied warranty of
+    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+    GNU General Public License for more details.
+
     You should have received a copy of the GNU General Public License along
     with this program; if not, write to the Free Software Foundation, Inc.,
-    51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.            
+    51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
     =========================================================================
 */
 
@@ -72,7 +72,7 @@ s_load_binary (FILE *file, zhashx_t **ups2dc_p, zhashx_t *dc)
     assert (frame);
     *ups2dc_p = zhashx_unpack (frame);
     assert (*ups2dc_p);
-    
+
     zhashx_set_duplicator (*ups2dc_p, s_str_duplicator);
     zhashx_set_destructor (*ups2dc_p, s_str_destructor);
     zframe_destroy (&frame);
@@ -113,7 +113,7 @@ s_load_binary (FILE *file, zhashx_t **ups2dc_p, zhashx_t *dc)
     } while (i != size);
 
     zmsg_destroy (&msg);
-    return;    
+    return;
 }
 
 static void
@@ -194,7 +194,7 @@ int main (int argc, char *argv [])
         old_path = argv [2];
         new_path = argv [3];
     }
-   
+
     printf ("file_name = '%s'\n", file_name);
     printf ("old_path = '%s'\n", old_path);
     printf ("new_path = '%s'\n", new_path);
@@ -219,12 +219,11 @@ int main (int argc, char *argv [])
 
     zfile_close (file);
     zfile_destroy (&file);
- 
-    char *tmp;
-    asprintf (&tmp, "%s/%s", new_path, file_name);
-    s_save_zpl (ups2dc, dc, tmp); 
+
+    char *tmp = zsys_sprintf ("%s/%s", new_path, file_name);
+    s_save_zpl (ups2dc, dc, tmp);
     zstr_free (&tmp);
- 
+
     zhashx_destroy (&ups2dc);
     zhashx_destroy (&dc);
 

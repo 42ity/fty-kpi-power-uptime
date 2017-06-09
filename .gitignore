@@ -23,9 +23,9 @@ save.xml
 # Executables
 src/fty-kpi-power-uptime_selftest
 src/fty-kpi-power-uptime
-src/fty_kpi_power_uptime_selftest
 src/fty-kpi-power-uptime-convert
 src/fty_kpi_power_uptime_convert
+src/fty_kpi_power_uptime_selftest
 *.exe
 *.out
 *.app
@@ -55,6 +55,7 @@ config.log
 config.status
 config/
 configure
+configure.lineno
 libtool
 src/platform.h
 src/platform.h.in
@@ -66,7 +67,6 @@ src/.dirstamp
 # CMake cache
 CMakeCache.txt
 CMakeFiles/
-CMakesLists.txt
 CTestTestfile.cmake
 cmake_install.cmake
 compile_commands.json
@@ -134,6 +134,3 @@ bindings/qt/selftest/selftest
 
 # editor backups
 *~
-
-*.tar.gz
-*.zip

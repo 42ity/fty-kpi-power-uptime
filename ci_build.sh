@@ -45,12 +45,12 @@ default|default-Werror|default-with-docs|valgrind)
     if which ccache && ls -la /usr/lib/ccache ; then
         HAVE_CCACHE=yes
     fi
+    mkdir -p "${CCACHE_DIR}" || HAVE_CCACHE=no
 
     if [ "$HAVE_CCACHE" = yes ] && [ -d "$CCACHE_DIR" ]; then
         echo "CCache stats before build:"
         ccache -s || true
     fi
-    mkdir -p "${HOME}/.ccache"
 
     CONFIG_OPTS=()
     COMMON_CFLAGS=""
@@ -174,6 +174,38 @@ default|default-Werror|default-with-docs|valgrind)
     # or MacOS packages; other OSes are not currently supported by Travis cloud
     [ -z "$CI_TIME" ] || echo "`date`: Starting build of dependencies (if any)..."
 
+    # Start of recipe for dependency: libsodium
+    if ! (command -v dpkg-query >/dev/null 2>&1 && dpkg-query --list libsodium-dev >/dev/null 2>&1) || \
+           (command -v brew >/dev/null 2>&1 && brew ls --versions libsodium >/dev/null 2>&1) \
+    ; then
+        echo ""
+        BASE_PWD=${PWD}
+        echo "`date`: INFO: Building prerequisite 'libsodium' from Git repository..." >&2
+        $CI_TIME git clone --quiet --depth 1 -b release/IPM_Infra-1.3 https://github.com/42ity/libsodium.git libsodium
+        cd libsodium
+        CCACHE_BASEDIR=${PWD}
+        export CCACHE_BASEDIR
+        git --no-pager log --oneline -n1
+        if [ -e autogen.sh ]; then
+            $CI_TIME ./autogen.sh 2> /dev/null
+        fi
+        if [ -e buildconf ]; then
+            $CI_TIME ./buildconf 2> /dev/null
+        fi
+        if [ ! -e autogen.sh ] && [ ! -e buildconf ] && [ ! -e ./configure ] && [ -s ./configure.ac ]; then
+            $CI_TIME libtoolize --copy --force && \
+            $CI_TIME aclocal -I . && \
+            $CI_TIME autoheader && \
+            $CI_TIME automake --add-missing --copy && \
+            $CI_TIME autoconf || \
+            $CI_TIME autoreconf -fiv
+        fi
+        $CI_TIME ./configure "${CONFIG_OPTS[@]}"
+        $CI_TIME make -j4
+        $CI_TIME make install
+        cd "${BASE_PWD}"
+    fi
+
     # Start of recipe for dependency: libzmq
     if ! (command -v dpkg-query >/dev/null 2>&1 && dpkg-query --list libzmq3-dev >/dev/null 2>&1) || \
            (command -v brew >/dev/null 2>&1 && brew ls --versions libzmq >/dev/null 2>&1) \
@@ -181,7 +213,7 @@ default|default-Werror|default-with-docs|valgrind)
         echo ""
         BASE_PWD=${PWD}
         echo "`date`: INFO: Building prerequisite 'libzmq' from Git repository..." >&2
-        $CI_TIME git clone --quiet --depth 1 https://github.com/zeromq/libzmq.git libzmq
+        $CI_TIME git clone --quiet --depth 1 -b release/IPM_Infra-1.3 https://github.com/42ity/libzmq.git libzmq
         cd libzmq
         CCACHE_BASEDIR=${PWD}
         export CCACHE_BASEDIR
@@ -213,7 +245,7 @@ default|default-Werror|default-with-docs|valgrind)
         echo ""
         BASE_PWD=${PWD}
         echo "`date`: INFO: Building prerequisite 'czmq' from Git repository..." >&2
-        $CI_TIME git clone --quiet --depth 1 -b v3.0.2 https://github.com/42ity/czmq.git czmq
+        $CI_TIME git clone --quiet --depth 1 -b release/IPM_Infra-1.3 https://github.com/42ity/czmq.git czmq
         cd czmq
         CCACHE_BASEDIR=${PWD}
         export CCACHE_BASEDIR
@@ -245,7 +277,7 @@ default|default-Werror|default-with-docs|valgrind)
         echo ""
         BASE_PWD=${PWD}
         echo "`date`: INFO: Building prerequisite 'malamute' from Git repository..." >&2
-        $CI_TIME git clone --quiet --depth 1 https://github.com/zeromq/malamute.git malamute
+        $CI_TIME git clone --quiet --depth 1 -b release/IPM_Infra-1.3 https://github.com/42ity/malamute.git malamute
         cd malamute
         CCACHE_BASEDIR=${PWD}
         export CCACHE_BASEDIR
@@ -277,7 +309,7 @@ default|default-Werror|default-with-docs|valgrind)
         echo ""
         BASE_PWD=${PWD}
         echo "`date`: INFO: Building prerequisite 'fty-proto' from Git repository..." >&2
-        $CI_TIME git clone --quiet --depth 1 https://github.com/42ity/fty-proto fty-proto
+        $CI_TIME git clone --quiet --depth 1 -b release/IPM_Infra-1.3 https://github.com/42ity/fty-proto.git fty-proto
         cd fty-proto
         CCACHE_BASEDIR=${PWD}
         export CCACHE_BASEDIR
@@ -321,7 +353,9 @@ default|default-Werror|default-with-docs|valgrind)
     $CI_TIME ./configure --enable-drafts=yes "${CONFIG_OPTS[@]}"
     if [ "$BUILD_TYPE" == "valgrind" ] ; then
         # Build and check this project
-        $CI_TIME make VERBOSE=1 memcheck
+        $CI_TIME make VERBOSE=1 memcheck && exit
+        echo "Re-running failed ($?) memcheck with greater verbosity" >&2
+        $CI_TIME make VERBOSE=1 memcheck-verbose
         exit $?
     fi
     $CI_TIME make VERBOSE=1 all
@@ -348,10 +382,10 @@ default|default-Werror|default-with-docs|valgrind)
     git reset --hard HEAD
     (
         $CI_TIME ./autogen.sh 2> /dev/null
-        $CI_TIME ./configure --enable-drafts=no "${CONFIG_OPTS[@]}" --with-docs=yes
+        $CI_TIME ./configure --enable-drafts=no "${CONFIG_OPTS[@]}"
         $CI_TIME make VERBOSE=1 all || exit $?
         (
-            export DISTCHECK_CONFIGURE_FLAGS="--enable-drafts=no ${CONFIG_OPTS[@]} --with-docs=yes" && \
+            export DISTCHECK_CONFIGURE_FLAGS="--enable-drafts=no ${CONFIG_OPTS[@]}" && \
             $CI_TIME make VERBOSE=1 DISTCHECK_CONFIGURE_FLAGS="$DISTCHECK_CONFIGURE_FLAGS" distcheck || exit $?
         )
     ) || exit 1

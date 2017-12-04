@@ -13,13 +13,14 @@ AM_CFLAGS = \
 
 
 AM_CPPFLAGS = \
+    ${libsodium_CFLAGS} \
     ${libzmq_CFLAGS} \
     ${czmq_CFLAGS} \
     ${malamute_CFLAGS} \
     ${fty_proto_CFLAGS} \
     -I$(srcdir)/include
 
-project_libs = ${libzmq_LIBS} ${czmq_LIBS} ${malamute_LIBS} ${fty_proto_LIBS}
+project_libs = ${libsodium_LIBS} ${libzmq_LIBS} ${czmq_LIBS} ${malamute_LIBS} ${fty_proto_LIBS}
 
 SUBDIRS = doc
 DIST_SUBDIRS = doc
@@ -37,6 +38,7 @@ DISTCLEANFILES =
 
 if ENABLE_DIST_CMAKEFILES
 EXTRA_DIST += \
+    Findlibsodium.cmake \
     Findlibzmq.cmake \
     Findczmq.cmake \
     Findmalamute.cmake \

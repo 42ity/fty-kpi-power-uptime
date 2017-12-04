@@ -1,7 +1,5 @@
 usr/bin/fty-kpi-power-uptime
-usr/share/man/man1/fty-kpi-power-uptime.1
 usr/bin/fty-kpi-power-uptime-convert
-usr/share/man/man1/fty-kpi-power-uptime-convert.1
 etc/fty-kpi-power-uptime/fty-kpi-power-uptime.cfg
 lib/systemd/system/fty-kpi-power-uptime.service
 

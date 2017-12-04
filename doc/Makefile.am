@@ -77,7 +77,7 @@ fty-kpi-power-uptime-convert.txt: $(top_srcdir)/src/fty_kpi_power_uptime_convert
 	"$(srcdir)/mkman" "fty_kpi_power_uptime_convert" "$(builddir)/fty-kpi-power-uptime-convert.txt" "$(srcdir)/.."
 
 
-clean:
+clean-local:
 	rm -f *.1 *.3 *.7 $(GENERATED_DOCS)
 
 doc: $(GENERATED_DOCS)

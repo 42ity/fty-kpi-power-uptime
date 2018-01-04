@@ -147,7 +147,8 @@ s_set_dc_upses (fty_kpi_power_uptime_server_t *self, fty_proto_t *fmsg)
         return;
     }
 
-    zhash_t *aux = fty_proto_aux (fmsg);
+    zhash_t *aux = fty_proto_get_aux (fmsg);
+    zhash_autofree (aux);
     if (!aux)
     {
         zsys_error ("s_set_dc_upses: missing aux in fty-proto message");
@@ -186,6 +187,7 @@ s_set_dc_upses (fty_kpi_power_uptime_server_t *self, fty_proto_t *fmsg)
     uint64_t total, offline;
     upt_uptime (self->upt, dc_name, &total, &offline);
     zlistx_destroy (&ups);
+    zhash_destroy (&aux);
 }
 
 static void

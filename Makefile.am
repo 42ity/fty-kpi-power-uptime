@@ -8,9 +8,6 @@ DISTCHECK_CONFIGURE_FLAGS = \
 
 ACLOCAL_AMFLAGS = -I config
 
-AM_CFLAGS = \
-    -Werror=format-security
-
 
 AM_CPPFLAGS = \
     ${libsodium_CFLAGS} \
@@ -23,7 +20,10 @@ AM_CPPFLAGS = \
 project_libs = ${libsodium_LIBS} ${libzmq_LIBS} ${czmq_LIBS} ${malamute_LIBS} ${fty_proto_LIBS}
 
 SUBDIRS = doc
+SUBDIRS += include
 DIST_SUBDIRS = doc
+DIST_SUBDIRS += include
+
 lib_LTLIBRARIES =
 bin_PROGRAMS =
 noinst_PROGRAMS =
@@ -43,12 +43,16 @@ EXTRA_DIST += \
     Findczmq.cmake \
     Findmalamute.cmake \
     Findfty_proto.cmake \
+    builds/cmake/Modules/ClangFormat.cmake \
+    builds/cmake/clang-format-check.sh.in \
+    builds/cmake/Config.cmake.in \
     CMakeLists.txt
 endif
 
 EXTRA_DIST += \
     src/dc.h \
     src/upt.h \
+    README.md \
     src/fty_kpi_power_uptime_classes.h
 
 # NOTE: this "include" syntax is not a "make" but an "autotools" keyword,

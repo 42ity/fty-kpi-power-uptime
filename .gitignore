@@ -27,17 +27,16 @@ save.xml
 src/fty-kpi-power-uptime_selftest
 src/fty-kpi-power-uptime
 src/fty-kpi-power-uptime-convert
-src/fty_kpi_power_uptime_convert
 src/fty_kpi_power_uptime_selftest
 *.exe
 *.out
 *.app
 core
 
- # Distcheck workspace and archives
-fty-kpi-power-uptime-1.0.0/
-fty-kpi-power-uptime-1.0.0.tar.gz
-fty-kpi-power-uptime-1.0.0.zip
+# Distcheck workspace and archives
+fty-kpi-power-uptime-*/
+fty-kpi-power-uptime-*.tar.gz
+fty-kpi-power-uptime-*.zip
 
 # Man pages
 doc/*.1
@@ -83,6 +82,7 @@ CMake*
 *.cmake
 
 # Repositories downloaded by CI integration scripts
+libsodium/
 libzmq/
 czmq/
 malamute/
@@ -115,7 +115,7 @@ src/app/gen/
 src/app/obj/
 src/app/local.properties
 
-# Android -dependencies
+# Android - dependencies
 src/app/jni/output
 
 # Python build directory
@@ -136,6 +136,9 @@ bindings/qt/selftest/selftest
 *.swp
 *.bak
 .test*
+
+# Netbeans directory
+nbproject/
 
 # editor backups
 *~

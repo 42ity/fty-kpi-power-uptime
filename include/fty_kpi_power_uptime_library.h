@@ -1,7 +1,7 @@
 /*  =========================================================================
     fty-kpi-power-uptime - generated layer of public API
 
-    Copyright (C) 2014 - 2017 Eaton
+    Copyright (C) 2014 - 2018 Eaton
 
     This program is free software; you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -63,11 +63,12 @@
 #   define FTY_KPI_POWER_UPTIME_EXPORT
 #   define FTY_KPI_POWER_UPTIME_PRIVATE
 #else
-#   define FTY_KPI_POWER_UPTIME_EXPORT
 #   if (defined __GNUC__ && __GNUC__ >= 4) || defined __INTEL_COMPILER
 #       define FTY_KPI_POWER_UPTIME_PRIVATE __attribute__ ((visibility ("hidden")))
+#       define FTY_KPI_POWER_UPTIME_EXPORT __attribute__ ((visibility ("default")))
 #   else
 #       define FTY_KPI_POWER_UPTIME_PRIVATE
+#       define FTY_KPI_POWER_UPTIME_EXPORT
 #   endif
 #endif
 
@@ -90,9 +91,18 @@ typedef struct _fty_kpi_power_uptime_server_t fty_kpi_power_uptime_server_t;
 #endif // FTY_KPI_POWER_UPTIME_BUILD_DRAFT_API
 
 #ifdef FTY_KPI_POWER_UPTIME_BUILD_DRAFT_API
+
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 //  Self test for private classes
 FTY_KPI_POWER_UPTIME_EXPORT void
-    fty_kpi_power_uptime_private_selftest (bool verbose);
+    fty_kpi_power_uptime_private_selftest (bool verbose, const char *subtest);
+
+#ifdef __cplusplus
+}
+#endif
 #endif // FTY_KPI_POWER_UPTIME_BUILD_DRAFT_API
 
 #endif

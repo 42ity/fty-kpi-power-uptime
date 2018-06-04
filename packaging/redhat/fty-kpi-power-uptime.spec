@@ -1,7 +1,7 @@
 #
 #    fty-kpi-power-uptime - Compute Data Center uptime
 #
-#    Copyright (C) 2014 - 2017 Eaton
+#    Copyright (C) 2014 - 2018 Eaton
 #
 #    This program is free software; you can redistribute it and/or modify
 #    it under the terms of the GNU General Public License as published by
@@ -115,6 +115,7 @@ find %{buildroot} -name '*.la' | xargs rm -f
 
 %files
 %defattr(-,root,root)
+%doc README.md
 %doc COPYING
 %{_bindir}/fty-kpi-power-uptime
 %{_mandir}/man1/fty-kpi-power-uptime*

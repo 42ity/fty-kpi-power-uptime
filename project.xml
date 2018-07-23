@@ -49,6 +49,17 @@
         <use project = "malamute" />
     </use>
 
+    <use project = "fty-common-logging" libname = "libfty_common_logging" header="fty-log/fty_logger.h"
+        repository = "https://github.com/42ity/fty-common-logging.git"
+        release = "master"
+        test = "fty_log_selftest" >
+
+        <use project = "log4cplus" header = "log4cplus/logger.h" test = "appender_test"
+            repository = "https://github.com/42ity/log4cplus.git"
+            release = "1.1.2-FTY-master"
+            />
+    </use>
+
     <class name = "dc" private="1">DC information</class>
     <class name = "upt" private="1">DC uptime</class>
     <class name = "fty_kpi_power_uptime_server" status = "stable">Actor computing uptime</class>

@@ -5,3 +5,5 @@ server
     background = 0      #   Run as background process
     workdir = .         #   Working directory for daemon
     verbose = 0         #   Do verbose logging of activity?
+log
+    config = /etc/fty/ftylog.cfg

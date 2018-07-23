@@ -1,21 +1,21 @@
 /*  =========================================================================
     dc - DC information
 
-    Copyright (C) 2014 - 2017 Eaton                                        
-                                                                           
-    This program is free software; you can redistribute it and/or modify   
-    it under the terms of the GNU General Public License as published by   
-    the Free Software Foundation; either version 2 of the License, or      
-    (at your option) any later version.                                    
-                                                                           
-    This program is distributed in the hope that it will be useful,        
-    but WITHOUT ANY WARRANTY; without even the implied warranty of         
-    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the          
-    GNU General Public License for more details.                           
-                                                                           
+    Copyright (C) 2014 - 2017 Eaton
+
+    This program is free software; you can redistribute it and/or modify
+    it under the terms of the GNU General Public License as published by
+    the Free Software Foundation; either version 2 of the License, or
+    (at your option) any later version.
+
+    This program is distributed in the hope that it will be useful,
+    but WITHOUT ANY WARRANTY; without even the implied warranty of
+    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+    GNU General Public License for more details.
+
     You should have received a copy of the GNU General Public License along
     with this program; if not, write to the Free Software Foundation, Inc.,
-    51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.            
+    51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
     =========================================================================
 */
 
@@ -99,7 +99,7 @@ dc_set_offline (dc_t *self, char* ups)
     if (!foo)
     {
         zlistx_add_end (self->ups, ups);
-        zsys_debug ("uptime: ups %s set offline", ups);
+        log_debug ("uptime: ups %s set offline", ups);
     }
 }
 
@@ -216,7 +216,7 @@ dc_unpack (zframe_t *frame)
 
     char *magic = zmsg_popstr (msg);
     if (!magic || !streq (magic, "dc0x01")) {
-        zsys_error ("unknown magic %s", magic);
+        log_error ("unknown magic %s", magic);
         zmsg_destroy (&msg);
         return NULL;
     }
@@ -233,7 +233,7 @@ dc_unpack (zframe_t *frame)
     char *s_size = zmsg_popstr (msg);
 
     if (!s_last_update || !s_total || !s_offline || !s_size) {
-        zsys_error ("missing last_update, total, offline or size fields");
+        log_error ("missing last_update, total, offline or size fields");
         zstr_free (&s_last_update);
         zstr_free (&s_total);
         zstr_free (&s_offline);
@@ -281,16 +281,16 @@ dc_unpack (zframe_t *frame)
 
 void
 dc_print (dc_t *self) {
-    zsys_debug ("last_update: %"PRIi64"\n", self->last_update);
-    zsys_debug ("total: %"PRIu64"\n", self->total);
-    zsys_debug ("offline: %"PRIu64"\n", self->offline);
-    zsys_debug ("ups (%zu):\n", zlistx_size (self->ups));
+    log_debug ("last_update: %"PRIi64"\n", self->last_update);
+    log_debug ("total: %"PRIu64"\n", self->total);
+    log_debug ("offline: %"PRIu64"\n", self->offline);
+    log_debug ("ups (%zu):\n", zlistx_size (self->ups));
 
     for (char* i = (char*) zlistx_first (self->ups);
                i != NULL;
                i = (char*) zlistx_next (self->ups))
     {
-        zsys_debug ("    %s\n", i);
+        log_debug ("    %s\n", i);
     }
 }
 

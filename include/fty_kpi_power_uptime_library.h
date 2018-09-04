@@ -32,8 +32,8 @@
 //  External dependencies
 #include <czmq.h>
 #include <malamute.h>
-#include <ftyproto.h>
 #include <fty-log/fty_logger.h>
+#include <ftyproto.h>
 
 //  FTY_KPI_POWER_UPTIME version macros for compile-time API detection
 #define FTY_KPI_POWER_UPTIME_VERSION_MAJOR 1

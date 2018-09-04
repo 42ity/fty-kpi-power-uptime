@@ -28,9 +28,9 @@ Build-Depends: debhelper (>= 9),
     libzmq3-dev,
     libczmq-dev,
     libmlm-dev,
-    libfty-proto-dev,
     liblog4cplus-dev,
     libfty-common-logging-dev,
+    libfty-proto-dev,
     systemd,
     dh-systemd,
     asciidoc-base | asciidoc, xmlto,
@@ -52,9 +52,9 @@ Depends:
     libzmq3-dev,
     libczmq-dev,
     libmlm-dev,
-    libfty-proto-dev,
     liblog4cplus-dev,
     libfty-common-logging-dev,
+    libfty-proto-dev,
     libfty-kpi-power-uptime1 (= ${binary:Version})
 Description: fty-kpi-power-uptime development tools
  This package contains development files for fty-kpi-power-uptime:

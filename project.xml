@@ -30,12 +30,12 @@
     <abi current = "1" revision = "0" age = "0" />
 
     <use project = "czmq"
-        repository="https://github.com/42ity/czmq.git"
+        repository = "https://github.com/42ity/czmq.git"
         release = "v3.0.2-FTY-master"
         min_major = "3" min_minor = "0" min_patch = "2" >
 
         <use project = "libzmq"
-            repository="https://github.com/42ity/libzmq.git"
+            repository = "https://github.com/42ity/libzmq.git"
             release = "4.2.0-FTY-master" >
 
             <use project = "libsodium" prefix = "sodium"
@@ -46,11 +46,11 @@
     </use>
 
     <use project = "malamute" min_major = "1" test = "mlm_server_test"
-        repository="https://github.com/42ity/malamute.git"
+        repository = "https://github.com/42ity/malamute.git"
         release = "1.0-FTY-master"
         />
 
-    <use project = "fty-common-logging" libname = "libfty_common_logging" header="fty-log/fty_logger.h"
+    <use project = "fty-common-logging" libname = "libfty_common_logging" header = "fty-log/fty_logger.h"
         repository = "https://github.com/42ity/fty-common-logging.git"
         release = "master"
         test = "fty_common_logging_selftest" >
@@ -61,19 +61,19 @@
             />
     </use>
 
-    <use project = "fty-proto" libname = "libfty_proto" header="ftyproto.h" prefix="fty_proto"
+    <use project = "fty-proto" libname = "libfty_proto" header = "ftyproto.h" prefix = "fty_proto"
     min_major = "1" min_minor = "0" min_patch = "0"
     repository = "https://github.com/42ity/fty-proto.git"
     release = "master"
     test = "fty_proto_test" >
 
         <use project = "czmq"
-        repository="https://github.com/42ity/czmq.git"
+        repository = "https://github.com/42ity/czmq.git"
         release = "v3.0.2-FTY-master"
         min_major = "3" min_minor = "0" min_patch = "2" >
 
             <use project = "libzmq"
-            repository="https://github.com/42ity/libzmq.git"
+            repository = "https://github.com/42ity/libzmq.git"
             release = "4.2.0-FTY-master" >
 
                 <use project = "libsodium" prefix = "sodium"
@@ -84,11 +84,11 @@
         </use>
 
         <use project = "malamute" min_major = "1" test = "mlm_server_test"
-        repository="https://github.com/42ity/malamute.git"
+        repository = "https://github.com/42ity/malamute.git"
         release = "1.0-FTY-master"
         />
 
-        <use project = "fty-common-logging" libname = "libfty_common_logging" header="fty_log.h"
+        <use project = "fty-common-logging" libname = "libfty_common_logging" header = "fty_log.h"
         repository = "https://github.com/42ity/fty-common-logging.git"
         release = "master"
         test = "fty_common_logging_selftest" >
@@ -100,8 +100,8 @@
         </use>
     </use>
 
-    <class name = "dc" private="1">DC information</class>
-    <class name = "upt" private="1">DC uptime</class>
+    <class name = "dc" private = "1">DC information</class>
+    <class name = "upt" private = "1">DC uptime</class>
     <class name = "fty_kpi_power_uptime_server" status = "stable">Actor computing uptime</class>
     <main name = "fty-kpi-power-uptime" service = "1">
         Main daemon

@@ -77,13 +77,13 @@ int main (int argc, char *argv [])
     //     willing to maintain code which moves things from old path :)
     static const char* dir = "/var/lib/fty/fty-kpi-power-uptime";
 
-    zactor_t *server = zactor_new (fty_kpi_power_uptime_server, ACTOR_NAME);
+    zactor_t *server = zactor_new (fty_kpi_power_uptime_server, (void*)ACTOR_NAME);
     zstr_sendx (server, "CONFIG", dir, NULL);
     zsock_wait (server);
     zstr_sendx (server, "CONNECT", endpoint, NULL);
     zsock_wait (server);
-    zstr_sendx (server, "CONSUMER", "METRICS", "^status.ups@.*", NULL);
-    zstr_sendx (server, "CONSUMER", "METRICS", "^status@.*", NULL);
+//    zstr_sendx (server, "CONSUMER", "METRICS", "^status.ups@.*", NULL);
+//    zstr_sendx (server, "CONSUMER", "METRICS", "^status@.*", NULL);
     zstr_sendx (server, "CONSUMER", "ASSETS", "^datacenter.unknown@.*", NULL);
     zstr_sendx (server, "CONSUMER", "ASSETS", "^datacenter.N_A@.*", NULL);
     zsock_wait (server);

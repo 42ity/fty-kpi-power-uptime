@@ -268,6 +268,51 @@ s_handle_metric (fty_kpi_power_uptime_server_t *server, mlm_client_t *client, ft
     upt_uptime (server->upt, dc_name, &total, &offline);
 }
 
+
+void
+fty_kpi_power_metric_pull (zsock_t *pipe, void* args)
+{
+  zpoller_t *poller = zpoller_new (pipe, NULL);
+  zsock_signal (pipe, 0);
+
+  fty_kpi_power_uptime_server_t *server = (fty_kpi_power_uptime_server_t*) args;
+  uint64_t timeout = fty_get_polling_interval() * 1000;
+  while (!zsys_interrupted) {
+      void *which = zpoller_wait (poller, timeout);
+      if (which == NULL) {
+        if (zpoller_terminated (poller) || zsys_interrupted) {
+            break;
+        }
+        if (zpoller_expired (poller)) {
+          fty::shm::shmMetrics result;
+          log_debug("read metrics !");
+          fty::shm::read_metrics("metric", ".*", "^status\\.ups|^status",  result);
+          log_debug("metric reads : %d", result.size());
+          for (auto &element : result) {
+            s_handle_metric (server, NULL, element);
+          }
+        }
+      }
+      else if (which == pipe) {
+      zmsg_t *message = zmsg_recv (pipe);
+      if(message) {
+        char *cmd = zmsg_popstr (message);
+        if (cmd) {
+          if(streq (cmd, "$TERM")) {
+            zstr_free(&cmd);
+            zmsg_destroy(&message);
+            break;
+          }
+          zstr_free(&cmd);
+        }
+        zmsg_destroy(&message);
+      }
+    }
+    timeout = fty_get_polling_interval() * 1000;
+  }
+  zpoller_destroy(&poller);
+}
+
 //  Server as an actor
 void fty_kpi_power_uptime_server (zsock_t *pipe, void *args)
 {
@@ -281,7 +326,7 @@ void fty_kpi_power_uptime_server (zsock_t *pipe, void *args)
 
     zpoller_t *poller = zpoller_new (pipe, mlm_client_msgpipe (client), NULL);
     zsock_signal (pipe, 0);
-
+    zactor_t *kpi_power_metric_pull = zactor_new (fty_kpi_power_metric_pull, (void*) server);
     while (!zsys_interrupted)
     {
         void *which = zpoller_wait (poller, -1);
@@ -427,6 +472,7 @@ exit:
     ret = fty_kpi_power_uptime_server_save_state (server);
     if (ret != 0)
         log_error ("failed to save state to %s", server->dir);
+    zactor_destroy(&kpi_power_metric_pull);
     zpoller_destroy (&poller);
     mlm_client_destroy (&client);
     fty_kpi_power_uptime_server_destroy (&server);
@@ -453,16 +499,20 @@ fty_kpi_power_uptime_server_test (bool verbose)
     // std::string str_SELFTEST_DIR_RW = std::string(SELFTEST_DIR_RW);
 
     //  @selftest
+    
+    fty_shm_set_test_dir(SELFTEST_DIR_RW);
+    fty_shm_set_default_polling_interval(10);
+    
     static const char* endpoint = "inproc://upt-server-test";
-    zactor_t *broker = zactor_new (mlm_server, "Malamute");
+    zactor_t *broker = zactor_new (mlm_server, (void*)"Malamute");
     zstr_sendx (broker, "BIND", endpoint, NULL);
 
     mlm_client_t *ui_metr = mlm_client_new ();
     mlm_client_connect (ui_metr, endpoint, 1000, "UI-M");
 
-    mlm_client_t *ups = mlm_client_new ();
-    mlm_client_connect (ups, endpoint, 1000, "UPS");
-    mlm_client_set_producer (ups, "METRICS");
+//    mlm_client_t *ups = mlm_client_new ();
+//    mlm_client_connect (ups, endpoint, 1000, "UPS");
+//    mlm_client_set_producer (ups, "METRICS");
 
     mlm_client_t *ups_dc = mlm_client_new ();
     mlm_client_connect (ups_dc, endpoint, 1000, "UPS_DC");
@@ -476,8 +526,8 @@ fty_kpi_power_uptime_server_test (bool verbose)
     zsock_wait (server);
     zstr_sendx (server, "CONNECT", endpoint, NULL);
     zsock_wait (server);
-    zstr_sendx (server, "CONSUMER", "METRICS", "status.ups.*", NULL);
-    zsock_wait (server);
+//    zstr_sendx (server, "CONSUMER", "METRICS", "status.ups.*", NULL);
+//    zsock_wait (server);
     zstr_sendx (server, "CONSUMER", "ASSETS", "datacenter.unknown@.*", NULL);
     zsock_wait (server);
     zclock_sleep (500);   //THIS IS A HACK TO SETTLE DOWN THINGS
@@ -540,7 +590,8 @@ fty_kpi_power_uptime_server_test (bool verbose)
                                               ""
                                               );
 
-    mlm_client_send (ups, "status.ups@roz.ups33", &metric);
+//    mlm_client_send (ups, "status.ups@roz.ups33", &metric);
+    fty::shm::write_metric(metric);
 
     char *subject2, *command, *total, *offline;
     zclock_sleep (1000);
@@ -575,8 +626,8 @@ fty_kpi_power_uptime_server_test (bool verbose)
     upt_t *upt = upt_new ();
     zlistx_t *upsl = zlistx_new ();
 
-    zlistx_add_end (upsl, "UPS007");
-    zlistx_add_end (upsl, "UPS006");
+    zlistx_add_end (upsl, (void*)"UPS007");
+    zlistx_add_end (upsl, (void*)"UPS006");
     r = upt_add (upt, "DC007", upsl);
     assert (r == 0);
 
@@ -590,6 +641,7 @@ fty_kpi_power_uptime_server_test (bool verbose)
     zlistx_destroy (&upsl);
     upt_destroy (&upt);
     fty_kpi_power_uptime_server_destroy (&s);
+    fty_shm_delete_test_dir();
     //  @end
 
     printf ("OK\n");

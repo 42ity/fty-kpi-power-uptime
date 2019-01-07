@@ -145,9 +145,9 @@ dc_pack (dc_t *self)
 
     zmsg_t *msg = zmsg_new ();
     zmsg_addstr (msg, "dc0x01");
-    zmsg_addstrf (msg, "%"PRIi64, self->last_update);
-    zmsg_addstrf (msg, "%"PRIu64, self->total);
-    zmsg_addstrf (msg, "%"PRIu64, self->offline);
+    zmsg_addstrf (msg, "%" PRIi64, self->last_update);
+    zmsg_addstrf (msg, "%" PRIu64, self->total);
+    zmsg_addstrf (msg, "%" PRIu64, self->offline);
     zmsg_addstrf (msg, "%zu", zlistx_size (self->ups));
 
     char *ups = (char*) zlistx_first (self->ups);
@@ -242,9 +242,9 @@ dc_unpack (zframe_t *frame)
         return NULL;
     }
 
-    sscanf (s_last_update, "%"SCNi64, &last_update);
-    sscanf (s_total, "%"SCNu64, &total);
-    sscanf (s_offline, "%"SCNu64, &offline);
+    sscanf (s_last_update, "%" SCNi64, &last_update);
+    sscanf (s_total, "%" SCNu64, &total);
+    sscanf (s_offline, "%" SCNu64, &offline);
     sscanf (s_size, "%zu", &size);
 
     zstr_free (&s_offline);
@@ -281,9 +281,9 @@ dc_unpack (zframe_t *frame)
 
 void
 dc_print (dc_t *self) {
-    log_debug ("last_update: %"PRIi64"\n", self->last_update);
-    log_debug ("total: %"PRIu64"\n", self->total);
-    log_debug ("offline: %"PRIu64"\n", self->offline);
+    log_debug ("last_update: %" PRIi64"\n", self->last_update);
+    log_debug ("total: %" PRIu64"\n", self->total);
+    log_debug ("offline: %" PRIu64"\n", self->offline);
     log_debug ("ups (%zu):\n", zlistx_size (self->ups));
 
     for (char* i = (char*) zlistx_first (self->ups);
@@ -307,23 +307,23 @@ dc_test (bool verbose)
 
     assert (!dc_is_offline (dc));
 
-    dc_set_online (dc, "UPS007");
+    dc_set_online (dc, (char*)"UPS007");
     assert (!dc_is_offline (dc));
 
-    dc_set_offline (dc, "UPS001");
+    dc_set_offline (dc, (char*)"UPS001");
     assert (dc_is_offline (dc));
 
     uint64_t total, offline;
 
     zclock_sleep (3000);
     dc_uptime (dc, &total, &offline);
-    printf ("total:  %"PRIi64, total);
-    printf ("offline:  %"PRIi64, offline);
+    printf ("total:  %" PRIi64, total);
+    printf ("offline:  %" PRIi64, offline);
 
     assert (total > 1);
     assert (offline > 1);
 
-    dc_set_online (dc, "UPS001");
+    dc_set_online (dc, (char*)"UPS001");
     assert (!dc_is_offline (dc));
 
     zclock_sleep (3000);
@@ -339,9 +339,9 @@ dc_test (bool verbose)
     dc->last_update = 42;
     dc->total = 1042;
     dc->offline = 17;
-    dc_set_offline (dc, "UPS001");
-    dc_set_offline (dc, "UPS002");
-    dc_set_offline (dc, "UPS003");
+    dc_set_offline (dc, (char*)"UPS001");
+    dc_set_offline (dc, (char*)"UPS002");
+    dc_set_offline (dc, (char*)"UPS003");
 
     zframe_t *frame = dc_pack (dc);
     assert (frame);

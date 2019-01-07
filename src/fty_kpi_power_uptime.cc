@@ -63,7 +63,7 @@ int main (int argc, char *argv [])
     }
 
     if (!log_config)
-        log_config = DEFAULT_LOG_CONFIG;
+        log_config = (char*)DEFAULT_LOG_CONFIG;
     ftylog_setInstance (ACTOR_NAME, log_config);
     Ftylog *log = ftylog_getInstance ();
 

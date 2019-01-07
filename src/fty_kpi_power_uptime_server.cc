@@ -27,6 +27,7 @@
 */
 
 #include "fty_kpi_power_uptime_classes.h"
+#include <regex>
 
 //  Structure of our class
 
@@ -149,7 +150,7 @@ s_set_dc_upses (fty_kpi_power_uptime_server_t *self, fty_proto_t *fmsg)
 
     zlistx_t *ups = zlistx_new ();
 
-    for (int i = 0; i < zhash_size (aux); ++i)
+    for (uint i = 0; i < zhash_size (aux); ++i)
     {
         char *key = zsys_sprintf ("ups%d", i);
         void *item = zhash_lookup (aux, key);
@@ -197,7 +198,7 @@ s_handle_uptime (fty_kpi_power_uptime_server_t *server, mlm_client_t *client, zm
     uint64_t total, offline;
     r = upt_uptime (server->upt, dc_name, &total, &offline);
 
-    log_debug ("%s:\tr: %d, total: %"PRIu64", offline: %"PRIu64"\n",
+    log_debug ("%s:\tr: %d, total: %" PRIu64", offline: %" PRIu64"\n",
                server->name,
                r,
                total,
@@ -216,9 +217,9 @@ s_handle_uptime (fty_kpi_power_uptime_server_t *server, mlm_client_t *client, zm
     }
 
     char *s_total, *s_offline;
-    r = asprintf (&s_total, "%"PRIu64, total);
+    r = asprintf (&s_total, "%" PRIu64, total);
     assert (r > 0);
-    r = asprintf (&s_offline, "%"PRIu64, offline);
+    r = asprintf (&s_offline, "%" PRIu64, offline);
     assert (r > 0);
 
     mlm_client_sendtox (
@@ -286,8 +287,10 @@ fty_kpi_power_metric_pull (zsock_t *pipe, void* args)
         if (zpoller_expired (poller)) {
           fty::shm::shmMetrics result;
           log_debug("read metrics !");
-          fty::shm::read_metrics("metric", ".*", "^status\\.ups|^status",  result);
+          fty::shm::read_metrics(FTY_SHM_METRIC_TYPE, ".*", "^status\\.ups|^status",  result);
           log_debug("metric reads : %d", result.size());
+          fty::shm::shmMetrics result2;
+          
           for (auto &element : result) {
             s_handle_metric (server, NULL, element);
           }
@@ -581,20 +584,20 @@ fty_kpi_power_uptime_server_test (bool verbose)
     zhash_destroy (&aux2);
 
     // set ups to on battery
-    zmsg_t *metric = fty_proto_encode_metric (NULL,
-                                              time (NULL),
-                                              100,
-                                              "status.ups",
-                                              "roz.ups33",
-                                              "16",
-                                              ""
-                                              );
+//    zmsg_t *metric = fty_proto_encode_metric (NULL,
+//                                              time (NULL),
+//                                              100,
+//                                              "status.ups",
+//                                              "roz.ups33",
+//                                              "16",
+//                                              ""
+//                                              );
 
 //    mlm_client_send (ups, "status.ups@roz.ups33", &metric);
-    fty::shm::write_metric(metric);
+    fty::shm::write_metric("roz.ups33", "status.ups", "16", "", 100);
 
     char *subject2, *command, *total, *offline;
-    zclock_sleep (1000);
+    zclock_sleep (10000);
     zmsg_t *req = zmsg_new ();
     zmsg_addstrf (req, "%s", "UPTIME");
     zmsg_addstrf (req, "%s", "my-dc");
@@ -608,14 +611,14 @@ fty_kpi_power_uptime_server_test (bool verbose)
     assert (atoi (total) > 0);
     assert (atoi (offline) > 0);
 
-    zmsg_destroy (&metric);
+    //zmsg_destroy (&metric);
     zstr_free (&subject2);
     zstr_free (&command);
     zstr_free (&total);
     zstr_free (&offline);
 
     mlm_client_destroy (&ups_dc);
-    mlm_client_destroy (&ups);
+//    mlm_client_destroy (&ups);
     mlm_client_destroy (&ui_metr);
     zactor_destroy (&server);
     zactor_destroy (&broker);

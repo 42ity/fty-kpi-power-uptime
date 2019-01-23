@@ -286,10 +286,8 @@ fty_kpi_power_metric_pull (zsock_t *pipe, void* args)
         }
         if (zpoller_expired (poller)) {
           fty::shm::shmMetrics result;
-          log_debug("read metrics !");
-          fty::shm::read_metrics(FTY_SHM_METRIC_TYPE, ".*", "^status\\.ups|^status",  result);
+          fty::shm::read_metrics(".*", "^status\\.ups|^status",  result);
           log_debug("metric reads : %d", result.size());
-          fty::shm::shmMetrics result2;
           
           for (auto &element : result) {
             s_handle_metric (server, NULL, element);

@@ -55,6 +55,8 @@ FTY_KPI_POWER_UPTIME_ORIG_CFLAGS="${CFLAGS:-none}"
 AC_PROG_CC
 AC_PROG_CC_C99
 AM_PROG_CC_C_O
+AC_PROG_CXX
+AC_PROG_CXX_C_O
 AC_LIBTOOL_WIN32_DLL
 AC_PROG_LIBTOOL
 AC_PROG_SED
@@ -532,15 +534,15 @@ AS_IF([test x"${search_log4cplus}" = xyes], [
         log4cplus_synthetic_libs="-llog4cplus"
 
         if test -n "${with_log4cplus}" && test x"${with_log4cplus}" != xyes && test x"${with_log4cplus}" != xno; then
-            if test -r "${with_log4cplus}/include/log4cplus/clogger.h"; then
+            if test -r "${with_log4cplus}/include/log4cplus/logger.h"; then
                 log4cplus_synthetic_cflags="-I${with_log4cplus}/include"
                 log4cplus_synthetic_libs="-L${with_log4cplus}/lib -llog4cplus"
             else
-            AC_MSG_ERROR([Header file ${with_log4cplus}/include/log4cplus/clogger.h was not found. Please check log4cplus prefix])
+            AC_MSG_ERROR([Header file ${with_log4cplus}/include/log4cplus/logger.h was not found. Please check log4cplus prefix])
             fi
         else
-            AC_CHECK_HEADER([log4cplus/clogger.h], [],
-            AC_MSG_ERROR([Header file log4cplus/clogger.h was not found in default search paths])
+            AC_CHECK_HEADER([log4cplus/logger.h], [],
+            AC_MSG_ERROR([Header file log4cplus/logger.h was not found in default search paths])
                 )
         fi
 
@@ -619,15 +621,15 @@ AS_IF([test x"${search_libfty_common_logging}" = xyes], [
         fty_common_logging_synthetic_libs="-lfty-common-logging"
 
         if test -n "${with_libfty_common_logging}" && test x"${with_libfty_common_logging}" != xyes && test x"${with_libfty_common_logging}" != xno; then
-            if test -r "${with_libfty_common_logging}/include/fty-log/fty_logger.h"; then
+            if test -r "${with_libfty_common_logging}/include/fty_log.h"; then
                 fty_common_logging_synthetic_cflags="-I${with_libfty_common_logging}/include"
                 fty_common_logging_synthetic_libs="-L${with_libfty_common_logging}/lib -lfty-common-logging"
             else
-            AC_MSG_ERROR([Header file ${with_libfty_common_logging}/include/fty-log/fty_logger.h was not found. Please check libfty_common_logging prefix])
+            AC_MSG_ERROR([Header file ${with_libfty_common_logging}/include/fty_log.h was not found. Please check libfty_common_logging prefix])
             fi
         else
-            AC_CHECK_HEADER([fty-log/fty_logger.h], [],
-            AC_MSG_ERROR([Header file fty-log/fty_logger.h was not found in default search paths])
+            AC_CHECK_HEADER([fty_log.h], [],
+            AC_MSG_ERROR([Header file fty_log.h was not found in default search paths])
                 )
         fi
 
@@ -748,6 +750,93 @@ dnl END of PKG_CHECK_MODULES and/or direct tests for libfty_proto
     ])
 ])
 dnl END of enabled attempts to search for libfty_proto
+
+
+was_fty_shm_check_lib_detected=no
+
+search_libfty_shm="yes"
+
+AC_ARG_WITH([libfty_shm],
+    [
+        AS_HELP_STRING([--with-libfty_shm],
+        [yes or no. Optionally specify libfty_shm prefix (directory where its include/ and lib/ are located), but that is only used if pkgconfig metadata is not found first])
+    ],
+    [
+        search_libfty_shm="yes"
+    ],
+    [
+        search_libfty_shm="yes"
+    ])
+AS_CASE([x"${with_libfty_shm}"],
+    [xyes], [search_libfty_shm="yes"],
+    [xno],  [search_libfty_shm="no"])
+
+dnl We do not abort right now, because the maintainer/developer may have
+dnl something particular in mind, e.g. to build just parts of a project.
+AS_IF([test x"${search_libfty_shm}" = xno],
+    [AC_MSG_WARN([Required dependency on fty_shm was explicitly disabled during configuration by '--with-libfty_shm=no'; subsequent full build of fty-kpi-power-uptime may fail])])
+
+AS_IF([test x"${search_libfty_shm}" = xyes], [
+    # Archive previously detected and supplied flags
+    PRE_SEARCH_CFLAGS="${CFLAGS}"
+    PRE_SEARCH_LIBS="${LIBS}"
+
+    found_pkgconfig=""
+    PKG_CHECK_MODULES([fty_shm], [libfty_shm >= 1.0.0],
+    [
+        PKGCFG_LIBS_PRIVATE="$PKGCFG_LIBS_PRIVATE $fty_shm_LIBS"
+        was_fty_shm_check_lib_detected=pkgcfg
+        found_pkgconfig="libfty_shm"
+    ],
+    [
+        AC_MSG_NOTICE([Package libfty_shm not found with needed constraints; falling back to defined compilability tests])
+
+        fty_shm_synthetic_cflags=""
+        fty_shm_synthetic_libs="-lfty_shm"
+
+        if test -n "${with_libfty_shm}" && test x"${with_libfty_shm}" != xyes && test x"${with_libfty_shm}" != xno; then
+            if test -r "${with_libfty_shm}/include/fty_shm.h"; then
+                fty_shm_synthetic_cflags="-I${with_libfty_shm}/include"
+                fty_shm_synthetic_libs="-L${with_libfty_shm}/lib -lfty_shm"
+            else
+            AC_MSG_ERROR([Header file ${with_libfty_shm}/include/fty_shm.h was not found. Please check libfty_shm prefix])
+            fi
+        else
+            AC_CHECK_HEADER([fty_shm.h], [],
+            AC_MSG_ERROR([Header file fty_shm.h was not found in default search paths])
+                )
+        fi
+
+        AC_CHECK_LIB([fty_shm], [fty_shm_test],
+            [
+                was_fty_shm_check_lib_detected=yes
+                PKGCFG_LIBS_PRIVATE="$PKGCFG_LIBS_PRIVATE -lfty_shm"
+            ],
+            [AC_MSG_ERROR([cannot link with -lfty_shm, install libfty_shm])])
+    ])
+
+dnl END of PKG_CHECK_MODULES and/or direct tests for libfty_shm
+    AS_CASE(["x${was_fty_shm_check_lib_detected}"],
+        [xpkgcfg], [
+                AC_SUBST([pkgconfig_name_libfty_shm],["${found_pkgconfig} >= 1.0.0"])
+                CFLAGS="${fty_shm_CFLAGS} ${CFLAGS}"
+                LIBS="${fty_shm_LIBS} ${LIBS}"
+            ],
+        [xyes], [
+                AC_SUBST([pkgconfig_name_libfty_shm],[""])
+                CFLAGS="${fty_shm_synthetic_cflags} ${CFLAGS}"
+                LDFLAGS="${fty_shm_synthetic_libs} ${LDFLAGS}"
+                LIBS="${fty_shm_synthetic_libs} ${LIBS}"
+
+                AC_SUBST([fty_shm_CFLAGS],[${fty_shm_synthetic_cflags}])
+                AC_SUBST([fty_shm_LIBS],[${fty_shm_synthetic_libs}])
+            ],
+        [xno], [
+                AC_SUBST([pkgconfig_name_libfty_shm],[""])
+            AC_MSG_ERROR([Cannot find pkg-config metadata for libfty_shm 1.0.0 or higher])
+    ])
+])
+dnl END of enabled attempts to search for libfty_shm
 
 
 CFLAGS="${PREVIOUS_CFLAGS}"
@@ -1043,7 +1132,7 @@ AS_IF([test "x$enable_Werror" = "xyes" || test "x$enable_Werror" = "xauto"],
         ])])
      AS_IF([test -n "$CPP"],[AS_IF([$CPP --version 2>&1 | grep 'Free Software Foundation' > /dev/null && test "x$GCC" = "xyes"],
         [AC_MSG_NOTICE([Enabling pedantic errors for GNU CPP preprocessor])
-         CPPFLAGS="$CPPFLAGS -pedantic -Werror -Wall -Wc++-compat"
+         CPPFLAGS="$CPPFLAGS -pedantic -Werror -Wall"
         ],
         [AC_MSG_NOTICE([Not enabling pedantic errors: preprocessor not supported by this recipe (not GNU CPP)])
          AS_IF([test "x$enable_Werror" = "xyes"], [AC_MSG_ERROR([--enable-Werror=yes was requested and can not be satisfied for CPP: $CPP])])

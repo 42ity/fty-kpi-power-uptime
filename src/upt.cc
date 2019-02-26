@@ -381,8 +381,8 @@ upt_test (bool verbose)
     assert (!dc_name);
 
     ups = zlistx_new ();
-    zlistx_add_end (ups, "UPS001");
-    zlistx_add_end (ups, "UPS007");
+    zlistx_add_end (ups, (void*)"UPS001");
+    zlistx_add_end (ups, (void*)"UPS007");
 
     r = upt_add (uptime, "DC007", ups);
     assert (r == 0);
@@ -422,7 +422,7 @@ upt_test (bool verbose)
 
     // test UPS removal
     ups = zlistx_new ();
-    zlistx_add_end (ups, "UPS007");
+    zlistx_add_end (ups, (void*)"UPS007");
     r = upt_add (uptime, "DC007", ups);
 
     assert (r == 0);
@@ -436,19 +436,19 @@ upt_test (bool verbose)
     zlistx_t *ups2 = zlistx_new ();
     ups = zlistx_new ();
 
-    zlistx_add_end (ups, "UPS007");
-    zlistx_add_end (ups, "UPS006");
-    zlistx_add_end (ups, "UPS005");
-    zlistx_add_end (ups2, "UPS001");
-    zlistx_add_end (ups2, "UPS002");
-    zlistx_add_end (ups2, "UPS003");
+    zlistx_add_end (ups, (void*)"UPS007");
+    zlistx_add_end (ups, (void*)"UPS006");
+    zlistx_add_end (ups, (void*)"UPS005");
+    zlistx_add_end (ups2, (void*)"UPS001");
+    zlistx_add_end (ups2, (void*)"UPS002");
+    zlistx_add_end (ups2, (void*)"UPS003");
 
     r = upt_add (uptime2, "DC007", ups);
     assert (r == 0);
     r = upt_add (uptime2, "DC006", ups2);
     assert (r == 0);
 
-    zlistx_add_end (ups2, "UPS033");
+    zlistx_add_end (ups2, (void*)"UPS033");
     r = upt_add (uptime2, "DC006", ups2);
     assert (r == 0);
 

@@ -13,22 +13,23 @@ lib_LTLIBRARIES += src/libfty_kpi_power_uptime.la
 pkgconfig_DATA = src/libfty_kpi_power_uptime.pc
 
 src_libfty_kpi_power_uptime_la_SOURCES = \
-    src/dc.c \
-    src/upt.c \
+    src/dc.cc \
+    src/upt.cc \
     src/platform.h
 
 if ENABLE_DRAFTS
 src_libfty_kpi_power_uptime_la_SOURCES += \
-    src/fty_kpi_power_uptime_server.c
+    src/fty_kpi_power_uptime_server.cc
 
 endif
 
 if ENABLE_DRAFTS
 src_libfty_kpi_power_uptime_la_SOURCES += \
-    src/fty_kpi_power_uptime_private_selftest.c
+    src/fty_kpi_power_uptime_private_selftest.cc
 endif
 
 src_libfty_kpi_power_uptime_la_CPPFLAGS = ${AM_CPPFLAGS}
+src_libfty_kpi_power_uptime_la_CXXFLAGS = ${AM_CXXFLAGS}
 
 src_libfty_kpi_power_uptime_la_LDFLAGS = \
     -version-info @LTVER@ \
@@ -56,7 +57,7 @@ if ENABLE_FTY_KPI_POWER_UPTIME
 bin_PROGRAMS += src/fty-kpi-power-uptime
 src_fty_kpi_power_uptime_CPPFLAGS = ${AM_CPPFLAGS}
 src_fty_kpi_power_uptime_LDADD = ${program_libs}
-src_fty_kpi_power_uptime_SOURCES = src/fty_kpi_power_uptime.c
+src_fty_kpi_power_uptime_SOURCES = src/fty_kpi_power_uptime.cc
 src_fty_kpi_power_uptime_config_DATA =
 src_fty_kpi_power_uptime_config_DATA += src/fty-kpi-power-uptime.cfg
 src_fty_kpi_power_uptime_configdir = $(sysconfdir)/fty-kpi-power-uptime
@@ -69,7 +70,7 @@ if ENABLE_FTY_KPI_POWER_UPTIME_CONVERT
 bin_PROGRAMS += src/fty-kpi-power-uptime-convert
 src_fty_kpi_power_uptime_convert_CPPFLAGS = ${AM_CPPFLAGS}
 src_fty_kpi_power_uptime_convert_LDADD = ${program_libs}
-src_fty_kpi_power_uptime_convert_SOURCES = src/fty_kpi_power_uptime_convert.c
+src_fty_kpi_power_uptime_convert_SOURCES = src/fty_kpi_power_uptime_convert.cc
 endif #ENABLE_FTY_KPI_POWER_UPTIME_CONVERT
 
 if ENABLE_FTY_KPI_POWER_UPTIME_SELFTEST
@@ -77,7 +78,7 @@ check_PROGRAMS += src/fty_kpi_power_uptime_selftest
 noinst_PROGRAMS += src/fty_kpi_power_uptime_selftest
 src_fty_kpi_power_uptime_selftest_CPPFLAGS = ${AM_CPPFLAGS}
 src_fty_kpi_power_uptime_selftest_LDADD = ${program_libs}
-src_fty_kpi_power_uptime_selftest_SOURCES = src/fty_kpi_power_uptime_selftest.c
+src_fty_kpi_power_uptime_selftest_SOURCES = src/fty_kpi_power_uptime_selftest.cc
 endif #ENABLE_FTY_KPI_POWER_UPTIME_SELFTEST
 
 # define custom target for all products of /src
@@ -216,7 +217,7 @@ coverage: src/fty_kpi_power_uptime_selftest $(top_builddir)/$(SELFTEST_DIR_RW) $
 	$(MAKE) check
 	lcov --base-directory . --directory . --capture -o coverage.info
 	lcov --remove coverage.info "/usr*" -o coverage.info
-	lcov --remove coverage.info "fty_kpi_power_uptime_selftest.c" -o coverage.info
+	lcov --remove coverage.info "fty_kpi_power_uptime_selftest.cc" -o coverage.info
 	$(RM) -rf coverage/*
 	genhtml -o coverage/ -t "fty-kpi-power-uptime test coverage" --num-spaces 4 coverage.info
 else
@@ -338,7 +339,7 @@ endif
 
 cppcheck.xml:
 	@echo "Performing cppcheck static analysis..."
-	cppcheck --enable=all --inconclusive --xml --xml-version=2 . 2>"$@"
+	cppcheck --std=c++11 --enable=all --inconclusive --xml --xml-version=2 . 2>"$@"
 	@echo "The cppcheck static analysis is done"
 
 # Note: this recipe tests that the Git-based workspace reports no changed

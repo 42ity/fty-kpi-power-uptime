@@ -65,19 +65,19 @@ GENERATED_DOCS =
 	@true
 
 GENERATED_DOCS += fty_kpi_power_uptime_server.txt fty_kpi_power_uptime_server.doc
-fty_kpi_power_uptime_server.txt: $(top_srcdir)/src/fty_kpi_power_uptime_server.c
+fty_kpi_power_uptime_server.txt: $(top_srcdir)/src/fty_kpi_power_uptime_server.cc
 	"$(srcdir)/mkman" "fty_kpi_power_uptime_server" "$(builddir)/fty_kpi_power_uptime_server.txt" "$(srcdir)/.."
 
 ### Note: for mains, we keep the source name rather than flattened name:c
 ### so that the manpages for binary programs match their name, at expense
 ### of perhaps being built in a subdirectory under doc/.
 GENERATED_DOCS += fty-kpi-power-uptime.txt fty-kpi-power-uptime.doc
-fty-kpi-power-uptime.txt: $(top_srcdir)/src/fty_kpi_power_uptime.c
+fty-kpi-power-uptime.txt: $(top_srcdir)/src/fty_kpi_power_uptime.cc
 	mkdir -p "$(builddir)/$(@D)"
 	"$(srcdir)/mkman" "fty_kpi_power_uptime" "$(builddir)/fty-kpi-power-uptime.txt" "$(srcdir)/.."
 
 GENERATED_DOCS += fty-kpi-power-uptime-convert.txt fty-kpi-power-uptime-convert.doc
-fty-kpi-power-uptime-convert.txt: $(top_srcdir)/src/fty_kpi_power_uptime_convert.c
+fty-kpi-power-uptime-convert.txt: $(top_srcdir)/src/fty_kpi_power_uptime_convert.cc
 	mkdir -p "$(builddir)/$(@D)"
 	"$(srcdir)/mkman" "fty_kpi_power_uptime_convert" "$(builddir)/fty-kpi-power-uptime-convert.txt" "$(srcdir)/.."
 

@@ -99,12 +99,18 @@ pkg_deps_common: &pkg_deps_common
 # Also note that as of early 2017, either dist==trusty or services==docker
 # is needed for some C++11 support; docker envs are usually faster to start up
 # A newer dist==xenial completes the C++11 support with gcc-5+
+# Note that with current implementation of zproject use-cxx-gcc-4-9 option,
+# this effectively hardcodes the use of specifically 4.9, not allowing for
+# "4.9 or newer".
 addons:
   apt:
     sources:
     - *pkg_src_zeromq_ubuntu14
+    - ubuntu-toolchain-r-test
     packages:
     - *pkg_deps_common
+    - gcc-4.9
+    - g++-4.9
 
 matrix:
   include:
@@ -115,9 +121,12 @@ matrix:
       apt:
         sources:
         - *pkg_src_zeromq_ubuntu14
+        - ubuntu-toolchain-r-test
         packages:
         - *pkg_deps_common
         - *pkg_deps_doctools
+        - gcc-4.9
+        - g++-4.9
   - env: BUILD_TYPE=valgrind
     os: linux
     dist: trusty
@@ -125,9 +134,12 @@ matrix:
       apt:
         sources:
         - *pkg_src_zeromq_ubuntu14
+        - ubuntu-toolchain-r-test
         packages:
         - valgrind
         - *pkg_deps_common
+        - gcc-4.9
+        - g++-4.9
   - env: BUILD_TYPE=default ADDRESS_SANITIZER=enabled
     os: linux
     dist: trusty
@@ -135,21 +147,12 @@ matrix:
       apt:
         sources:
         - *pkg_src_zeromq_ubuntu14
-        packages:
-        - *pkg_deps_common
-# Shadow-compilation setups below inspired by https://docs.travis-ci.com/user/languages/cpp/
-  - env: BUILD_TYPE=default-Werror MATRIX_EVAL="CC=gcc-4.9 && CXX=g++-4.9 && export CC CXX"
-    os: linux
-    dist: trusty
-    addons:
-      apt:
-        sources:
         - ubuntu-toolchain-r-test
-        - *pkg_src_zeromq_ubuntu14
         packages:
         - *pkg_deps_common
-        - g++-4.9
         - gcc-4.9
+        - g++-4.9
+# Shadow-compilation setups below inspired by https://docs.travis-ci.com/user/languages/cpp/
   - env: BUILD_TYPE=default-Werror MATRIX_EVAL="CC=gcc-5 && CXX=g++-5 && export CC CXX"
     os: linux
     dist: trusty
@@ -205,7 +208,6 @@ matrix:
         - *pkg_deps_prereqs
 # Note: "env" lines below must exactly describe a matrix option defined above
   allow_failures:
-  - env: BUILD_TYPE=default-Werror MATRIX_EVAL="CC=gcc-4.9 && CXX=g++-4.9 && export CC CXX"
   - env: BUILD_TYPE=default-Werror MATRIX_EVAL="CC=gcc-5 && CXX=g++-5 && export CC CXX"
   - env: BUILD_TYPE=default-Werror MATRIX_EVAL="CC=gcc-6 && CXX=g++-6 && export CC CXX"
   - env: BUILD_TYPE=default-Werror MATRIX_EVAL="CC=gcc-7 && CXX=g++-7 && export CC CXX"
@@ -215,6 +217,7 @@ matrix:
 before_install:
 - if [ "$TRAVIS_OS_NAME" == "osx" -a "$BUILD_TYPE" == "android" ] ; then brew install binutils ; fi
 - if [ "$TRAVIS_OS_NAME" == "osx" -a "$BUILD_TYPE" == "valgrind" ] ; then brew install valgrind ; fi
+- if [ "$CXX" == "g++" ] ; then export CXX="g++-4.9" CC="gcc-4.9" ; fi
 - if [ -n "${MATRIX_EVAL}" ] ; then eval ${MATRIX_EVAL} ; fi
 
 # Hand off to generated script for each BUILD_TYPE

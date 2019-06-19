@@ -37,6 +37,7 @@
     <include filename = "license.xml" />
     <version major = "1" minor = "0" patch = "0" />
     <abi current = "1" revision = "0" age = "0" />
+    <classfilename use-cxx-gcc-4-9 = "true" />
 
     <use project = "czmq"
         repository = "https://github.com/42ity/czmq.git"

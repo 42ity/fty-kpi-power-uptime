@@ -32,8 +32,6 @@
 //  External API
 #include "../include/fty_kpi_power_uptime.h"
 
-//  Extra headers
-
 //  Opaque class structures to allow forward references
 #ifndef DC_T_DEFINED
 typedef struct _dc_t dc_t;
@@ -43,6 +41,8 @@ typedef struct _dc_t dc_t;
 typedef struct _upt_t upt_t;
 #define UPT_T_DEFINED
 #endif
+
+//  Extra headers
 
 //  Internal API
 

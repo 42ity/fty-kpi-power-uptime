@@ -13,6 +13,8 @@
     <target name = "travis" >
         <!-- option name = "clangformat_implem" value = "autotools" / -->
         <option name = "use_cmake" value = "0" />
+        <option name = "dist" value = "trusty" />
+        <option name = "shadow_gcc" value = "2" />
         <!-- option name = "clangformat_require_good" value = "1" / -->
         <option name = "clangformat_allow_failures" value = "1" />
         <option name = "use_pkg_deps_prereqs_source" value = "0" />
@@ -35,6 +37,7 @@
     <include filename = "license.xml" />
     <version major = "1" minor = "0" patch = "0" />
     <abi current = "1" revision = "0" age = "0" />
+    <classfilename use-cxx-gcc-4-9 = "true" />
 
     <use project = "czmq"
         repository = "https://github.com/42ity/czmq.git"

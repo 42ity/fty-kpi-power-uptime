@@ -21,7 +21,7 @@
         <option name = "require_gitignore" value = "1" />
     </target>
     <target name = "jenkins" >
-        <option name = "agent_label" value = "devel-image &amp;&amp; x86_64" />
+        <option name = "agent_label" value = "devel-image-ipm_2.0.0 &amp;&amp; x86_64" />
         <option name = "triggers_pollSCM" value = "H/2 * * * *" />
         <option name = "test_cppcheck" value = "1" />
         <option name = "build_docs" value = "1" />
@@ -41,16 +41,16 @@
 
     <use project = "czmq"
         repository = "https://github.com/42ity/czmq.git"
-        release = "v3.0.2-FTY-master"
+        release = "release/IPM-2.0.0"
         min_major = "3" min_minor = "0" min_patch = "2" >
 
         <use project = "libzmq"
             repository = "https://github.com/42ity/libzmq.git"
-            release = "4.2.0-FTY-master" >
+            release = "release/IPM-2.0.0" >
 
             <use project = "libsodium" prefix = "sodium"
                 repository = "https://github.com/42ity/libsodium.git"
-                release = "1.0.5-FTY-master"
+                release = "release/IPM-2.0.0"
                 test = "sodium_init"
                 />
         </use>
@@ -59,21 +59,21 @@
     <use project = "fty-proto" libname = "libfty_proto" header = "ftyproto.h" prefix = "fty_proto"
         min_major = "1" min_minor = "0" min_patch = "0"
         repository = "https://github.com/42ity/fty-proto.git"
-        release = "master"
+        release = "release/IPM-2.0.0"
         test = "fty_proto_test" >
 
         <use project = "czmq"
             repository = "https://github.com/42ity/czmq.git"
-            release = "v3.0.2-FTY-master"
+            release = "release/IPM-2.0.0"
             min_major = "3" min_minor = "0" min_patch = "2" >
 
             <use project = "libzmq"
                 repository = "https://github.com/42ity/libzmq.git"
-                release = "4.2.0-FTY-master" >
+                release = "release/IPM-2.0.0" >
 
                 <use project = "libsodium" prefix = "sodium"
                     repository = "https://github.com/42ity/libsodium.git"
-                    release = "1.0.5-FTY-master"
+                    release = "release/IPM-2.0.0"
                     test = "sodium_init"
                     />
             </use>
@@ -81,17 +81,17 @@
 
         <use project = "malamute" min_major = "1" test = "mlm_server_test"
             repository = "https://github.com/42ity/malamute.git"
-            release = "1.0-FTY-master"
+            release = "release/IPM-2.0.0"
             />
 
         <use project = "fty-common-logging" libname = "libfty_common_logging" header = "fty_log.h"
             repository = "https://github.com/42ity/fty-common-logging.git"
-            release = "master"
+            release = "release/IPM-2.0.0"
             test = "fty_common_logging_selftest" >
 
             <use project = "log4cplus" header = "log4cplus/logger.h" test = "appender_test"
                 repository = "https://github.com/42ity/log4cplus.git"
-                release = "1.1.2-FTY-master"
+                release = "release/IPM-2.0.0"
                 />
         </use>
     </use>
@@ -101,7 +101,7 @@
 		header="fty_shm.h" min_major = "1"
 		test = "fty_shm_test" 
 		repository = "https://github.com/42ity/fty-shm.git"
-		release = "master"
+		release = "release/IPM-2.0.0"
 		/>
 
     <class name = "dc" private = "1">DC information</class>

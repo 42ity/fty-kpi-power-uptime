@@ -420,7 +420,7 @@ default|default-Werror|default-with-docs|valgrind|clang-format-check)
         BASE_PWD=${PWD}
         echo "`date`: INFO: Building prerequisite 'fty_shm' from Git repository..." >&2
         cd ./tmp-deps
-        $CI_TIME git clone --quiet --depth 1 https://github.com/42ity/fty-shm.git fty_shm
+        $CI_TIME git clone --quiet --depth 1 -b master https://github.com/42ity/fty-shm.git fty_shm
         cd ./fty_shm
         CCACHE_BASEDIR=${PWD}
         export CCACHE_BASEDIR

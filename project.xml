@@ -96,8 +96,13 @@
         </use>
     </use>
     
-    <use project = "fty_shm" libname = "libfty_shm" header="fty_shm.h" min_major = "1" test = "fty_shm_test" 
-	repository = "https://github.com/42ity/fty-shm.git"/>
+    <use project = "fty_shm" 
+		libname = "libfty_shm"
+		header="fty_shm.h" min_major = "1"
+		test = "fty_shm_test" 
+		repository = "https://github.com/42ity/fty-shm.git"
+		release = "master"
+		/>
 
     <class name = "dc" private = "1">DC information</class>
     <class name = "upt" private = "1">DC uptime</class>

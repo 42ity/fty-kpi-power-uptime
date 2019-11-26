@@ -64,6 +64,7 @@ pkg_deps_prereqs_source: &pkg_deps_prereqs_source
     - libsodium-dev
     - libzmq3-dev
     - libczmq-dev
+    - libfty-common-logging-dev
     - libfty-proto-dev
     - libfty-shm-dev
     - libmlm-dev

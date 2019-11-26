@@ -12,6 +12,7 @@ cd "$REPO_DIR/.."
 git clone --quiet --depth 1 https://github.com/42ity/libsodium.git libsodium
 git clone --quiet --depth 1 https://github.com/42ity/libzmq.git libzmq
 git clone --quiet --depth 1 https://github.com/42ity/czmq.git czmq
+git clone --quiet --depth 1 https://github.com/42ity/fty-common-logging.git fty-common-logging
 git clone --quiet --depth 1 https://github.com/42ity/fty-proto.git fty-proto
 git clone --quiet --depth 1 https://github.com/42ity/fty-shm.git fty_shm
 git clone --quiet --depth 1 https://github.com/42ity/malamute.git malamute

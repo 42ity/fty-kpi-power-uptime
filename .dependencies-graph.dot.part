@@ -1,0 +1,6 @@
+   fty-kpi-power-uptime -> libsodium;
+   fty-kpi-power-uptime -> libzmq;
+   fty-kpi-power-uptime -> czmq;
+   fty-kpi-power-uptime -> fty-proto;
+   fty-kpi-power-uptime -> fty_shm;
+   fty-kpi-power-uptime -> malamute;

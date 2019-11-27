@@ -58,11 +58,10 @@ BuildRequires:  gcc-c++ >= 4.9.0
 BuildRequires:  libsodium-devel
 BuildRequires:  zeromq-devel
 BuildRequires:  czmq-devel >= 3.0.2
-BuildRequires:  malamute-devel >= 1.0.0
-BuildRequires:  log4cplus-devel
 BuildRequires:  fty-common-logging-devel
 BuildRequires:  fty-proto-devel >= 1.0.0
 BuildRequires:  fty_shm-devel >= 1.0.0
+BuildRequires:  malamute-devel >= 1.0.0
 BuildRoot:      %{_tmppath}/%{name}-%{version}-build
 
 %description
@@ -90,11 +89,10 @@ Requires:       libfty_kpi_power_uptime1 = %{version}
 Requires:       libsodium-devel
 Requires:       zeromq-devel
 Requires:       czmq-devel >= 3.0.2
-Requires:       malamute-devel >= 1.0.0
-Requires:       log4cplus-devel
 Requires:       fty-common-logging-devel
 Requires:       fty-proto-devel >= 1.0.0
 Requires:       fty_shm-devel >= 1.0.0
+Requires:       malamute-devel >= 1.0.0
 
 %description devel
 compute data center uptime development tools

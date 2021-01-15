@@ -40,6 +40,22 @@ FTY_KPI_POWER_UPTIME_EXPORT dc_t *
 FTY_KPI_POWER_UPTIME_EXPORT void
     dc_destroy (dc_t **self_p);
 
+// Get total value
+FTY_KPI_POWER_UPTIME_EXPORT uint64_t
+    dc_total (dc_t* self);
+
+// Get off line value
+FTY_KPI_POWER_UPTIME_EXPORT uint64_t
+    dc_off_line (dc_t* self);
+
+// Set total value
+FTY_KPI_POWER_UPTIME_EXPORT void
+    set_dc_total (dc_t* self, uint64_t total);
+
+// Set off line value
+FTY_KPI_POWER_UPTIME_EXPORT void
+    set_dc_off_line (dc_t* self, uint64_t offline);
+
 //  Return if dc is offline
 bool
     dc_is_offline (dc_t *self);

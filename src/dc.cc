@@ -35,6 +35,38 @@ struct _dc_t {
     zlistx_t *ups;  // list of offline upses
 };
 
+uint64_t
+dc_total (dc_t* self)
+{
+    assert (self);
+
+    return self->total;
+}
+
+uint64_t
+dc_off_line (dc_t* self)
+{
+    assert (self);
+
+    return self->offline;
+}
+
+void
+set_dc_total (dc_t* self, uint64_t total)
+{
+    assert (self);
+
+    self->total = total;
+}
+
+void
+set_dc_off_line (dc_t* self, uint64_t offline)
+{
+    assert (self);
+
+    self->offline = offline;
+}
+
 static void
 s_str_destructor (void ** x)
 {

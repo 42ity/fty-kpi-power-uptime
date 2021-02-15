@@ -255,6 +255,14 @@ upt_save (upt_t *self, const char *file_path)
         zconfig_putf (config_file, path, "%s", dc_name);
         zstr_free (&path);
 
+        path = zsys_sprintf ("dc_data/%s/total", dc_name);
+        zconfig_putf (config_file, path , "%" SCNu64, dc_total (dc_struc));
+        zstr_free (&path);
+
+        path = zsys_sprintf ("dc_data/%s/off_line", dc_name);
+        zconfig_putf (config_file, path , "%" SCNu64, dc_off_line (dc_struc));
+        zstr_free (&path);
+
         // self->ups2dc - list of upses for each dc
         for (char *dc = (char*) zhashx_first (self->ups2dc);
              dc != NULL;
@@ -304,6 +312,27 @@ upt_t
             break;
 
         dc_t *dc = dc_new ();
+
+        // set total
+        uint64_t total;
+        path = zsys_sprintf ("dc_data/%s/total", dc_name);
+        char *s_total = zconfig_get (config_file, path , NULL);
+        zstr_free (&path);
+        if (s_total)
+        {
+            sscanf (s_total, "%" SCNu64, &total);
+            set_dc_total(dc, total);
+        }
+        // set offline
+        uint64_t offline;
+        path = zsys_sprintf ("dc_data/%s/off_line", dc_name);
+        char *s_off_line = zconfig_get (config_file, path , NULL);
+        zstr_free (&path);
+        if (s_off_line)
+        {
+            sscanf (s_off_line, "%" SCNu64, &offline);
+            set_dc_off_line(dc, offline);
+        }
         zhashx_insert (upt->dc, dc_name, dc);
 
         for (int j = 1; ; j++)
@@ -452,12 +481,32 @@ upt_test (bool verbose)
     r = upt_add (uptime2, "DC006", ups2);
     assert (r == 0);
 
+    upt_set_offline (uptime2, "UPS007");
+    assert (upt_is_offline (uptime2, "DC007"));
+
+    // uptime works with 1sec precision, so let sleep
+    zclock_sleep (2000);
+
+    total = 0;
+    offline = 0;
+    r = upt_uptime (uptime, "DC007", &total, &offline);
+    assert (r == 0);
+    assert (total > 1);
+    assert (offline > 1);
+
     r = upt_save (uptime2, state_file);
     assert (r == 0);
 
     upt_t *uptime3 = upt_load (state_file);
     assert (zhashx_size (uptime3->ups2dc) == (zlistx_size (ups) + zlistx_size (ups2)));
     assert (zhashx_size (uptime3->dc) == 2);
+
+    total = 0;
+    offline = 0;
+    r = upt_uptime (uptime, "DC007", &total, &offline);
+    assert (r == 0);
+    assert (total > 1);
+    assert (offline > 1);
 
     zstr_free (&state_file);
 

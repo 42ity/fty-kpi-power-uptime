@@ -288,7 +288,7 @@ fty_kpi_power_metric_pull (zsock_t *pipe, void* args)
           fty::shm::shmMetrics result;
           fty::shm::read_metrics(".*", "^status\\.ups|^status",  result);
           log_debug("metric reads : %d", result.size());
-          
+
           for (auto &element : result) {
             s_handle_metric (server, NULL, element);
           }
@@ -500,10 +500,10 @@ fty_kpi_power_uptime_server_test (bool verbose)
     // std::string str_SELFTEST_DIR_RW = std::string(SELFTEST_DIR_RW);
 
     //  @selftest
-    
+
     fty_shm_set_test_dir(SELFTEST_DIR_RW);
     fty_shm_set_default_polling_interval(10);
-    
+
     static const char* endpoint = "inproc://upt-server-test";
     zactor_t *broker = zactor_new (mlm_server, (void*)"Malamute");
     zstr_sendx (broker, "BIND", endpoint, NULL);

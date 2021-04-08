@@ -23,9 +23,10 @@ Priority:       optional
 Maintainer:     fty-kpi-power-uptime Developers <eatonipcopensource@eaton.com>
 Standards-Version: 4.0.1.0
 Build-Depends: debhelper (>= 9),
+    cmake (>=3.0),
+    fty-cmake-dev,
     pkg-config,
     libsodium-dev,
-    libzmq3-dev,
     libczmq-dev (>= 3.0.2),
     libfty-common-logging-dev,
     libfty-proto-dev (>= 1.0.0),
@@ -37,44 +38,10 @@ Build-Depends: debhelper (>= 9),
     asciidoc-base | asciidoc, xmlto,
     dh-autoreconf
 
-Package: libfty-kpi-power-uptime1
-Architecture: any
-Depends: ${shlibs:Depends}, ${misc:Depends}
-Description: fty-kpi-power-uptime shared library
- This package contains shared library for fty-kpi-power-uptime:
- compute data center uptime
-
-Package: libfty-kpi-power-uptime-dev
-Architecture: any
-Section: libdevel
-Depends:
-    ${misc:Depends},
-    libsodium-dev,
-    libzmq3-dev,
-    libczmq-dev (>= 3.0.2),
-    libfty-common-logging-dev,
-    libfty-proto-dev (>= 1.0.0),
-    libfty-shm-dev (>= 1.0.0),
-    libmlm-dev (>= 1.0.0),
-    libfty-kpi-power-uptime1 (= ${binary:Version})
-Description: fty-kpi-power-uptime development tools
- This package contains development files for fty-kpi-power-uptime:
- compute data center uptime
-
 Package: fty-kpi-power-uptime
 Architecture: any
-Depends: ${misc:Depends}, ${shlibs:Depends},
+Depends: ${misc:Depends},
+    ${shlibs:Depends}
 Description: runnable binaries from fty-kpi-power-uptime
  Main package for fty-kpi-power-uptime:
  compute data center uptime
-
-Package: fty-kpi-power-uptime-dbg
-Architecture: any
-Section: debug
-Priority: optional
-Depends:
-    fty-kpi-power-uptime (= ${binary:Version}),
-    ${misc:Depends}
-Description: fty-kpi-power-uptime debugging symbols
- This package contains the debugging symbols for fty-kpi-power-uptime:
- compute data center uptime.

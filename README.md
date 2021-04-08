@@ -7,20 +7,20 @@ Agent fty-kpi-power-uptime detects UPSes in each DC and computes uptime of the D
 To build fty-kpi-power-uptime project run:
 
 ```bash
-./autogen.sh
-./configure
+mkdir build && cd build
+cmake -DCMAKE_BUILD_TYPE=Debug -DCMAKE_INSTALL_PREFIX=usr -DBUILD_TESTING=On ..
 make
-make check # to run self-test
+sudo make install
 ```
 
 ## How to run
 
 To run fty-kpi-power-uptime project:
 
-* from within the source tree, run:
+* from within the build tree, run:
 
 ```bash
-./src/fty-kpi-power-uptime
+./build/agent/fty-kpi-power-uptime
 ```
 
 For the other options available, refer to the manual page of fty-kpi-power-uptime

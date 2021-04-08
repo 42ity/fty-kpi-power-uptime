@@ -1,0 +1,32 @@
+[Unit]
+Description=42ity kpi-power-uptime service
+Requires=network.target malamute.service
+After=network.target malamute.service
+
+# Enable FLA... once, do not keep retrying if EULA is not accepted yet
+# There are no assets monitored and metrics produced before FLA anyway
+After=fty-license-accepted.target
+Wants=fty-license-accepted.target
+Requisite=fty-license-accepted.target
+
+PartOf=bios.target
+
+[Service]
+Type=simple
+User=@KPI_USER@
+Restart=always
+ExecStartPre=+/bin/chmod 0755 @KPI_SETTINGS_DIR@
+ExecStartPre=+/bin/chown @KPI_USER@:root @KPI_SETTINGS_DIR@
+EnvironmentFile=-/usr/share/bios/etc/default/bios
+EnvironmentFile=-/usr/share/bios/etc/default/bios__%n.conf
+EnvironmentFile=-/usr/share/fty/etc/default/fty
+EnvironmentFile=-/usr/share/fty/etc/default/fty__%n.conf
+EnvironmentFile=-/etc/default/bios
+EnvironmentFile=-/etc/default/bios__%n.conf
+EnvironmentFile=-/etc/default/fty
+EnvironmentFile=-/etc/default/fty__%n.conf
+Environment="prefix=/usr"
+ExecStart=@CMAKE_INSTALL_FULL_BINDIR@/@PROJECT_NAME@
+
+[Install]
+WantedBy=bios.target

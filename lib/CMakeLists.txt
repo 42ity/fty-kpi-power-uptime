@@ -1,15 +1,9 @@
 cmake_minimum_required(VERSION 3.13)
 cmake_policy(VERSION 3.13)
 
-project(fty-kpi-power-uptime
-    VERSION 1.0.0
-    DESCRIPTION "Compute Data Center uptime"
-)
-
-##############################################################################################################
-find_package(fty-cmake PATHS ${CMAKE_BINARY_DIR}/fty-cmake)
 ##############################################################################################################
 
+#Create the target
 etn_target(static ${PROJECT_NAME}-lib
     SOURCES
         src/dc.cc
@@ -17,6 +11,8 @@ etn_target(static ${PROJECT_NAME}-lib
         src/upt.cc
         src/upt.h
         src/fty_kpi_power_uptime_server.cc
+    INCLUDE_DIRS
+        ../include
     PUBLIC_INCLUDE_DIR
         include
     PUBLIC

@@ -29,7 +29,6 @@
 #include "../include/fty_kpi_power_uptime_library.h"
 
 #define ACTOR_NAME "uptime"
-#define DEFAULT_LOG_CONFIG "/etc/fty/ftylog.cfg"
 
 int main (int argc, char *argv [])
 {
@@ -64,7 +63,7 @@ int main (int argc, char *argv [])
     }
 
     if (!log_config)
-        log_config = (char*)DEFAULT_LOG_CONFIG;
+        log_config = (char*)FTY_COMMON_LOGGING_DEFAULT_CFG ;
     ftylog_setInstance (ACTOR_NAME, log_config);
     Ftylog *log = ftylog_getInstance ();
 

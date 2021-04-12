@@ -1,5 +1,5 @@
 [Unit]
-Description=42ity kpi-power-uptime service
+Description=42ity @PROJECT_NAME@ service
 Requires=network.target malamute.service
 After=network.target malamute.service
 

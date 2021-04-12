@@ -28,13 +28,6 @@
 
 #include "fty_kpi_power_uptime_classes.h"
 
-/*#include "dc.h"
-#include <fty_log.h>
-//#include <fty_log.h>
-//#include <ftyproto.h>
-//#include <fty_shm.h>
-//#include <malamute.h>
-*/
 struct _dc_t {
     int64_t last_update;
     uint64_t total;

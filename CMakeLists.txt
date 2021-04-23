@@ -26,3 +26,10 @@ install(FILES "${PROJECT_BINARY_DIR}/resources/fty-kpi-power-uptime.cfg" DESTINA
 
 configure_file("${PROJECT_SOURCE_DIR}/resources/fty-kpi-power-uptime.service.in"    "${PROJECT_BINARY_DIR}/resources/fty-kpi-power-uptime.service" @ONLY)
 install(FILES "${PROJECT_BINARY_DIR}/resources/fty-kpi-power-uptime.service" DESTINATION ${CMAKE_INSTALL_PREFIX}/lib/systemd/system/)
+
+# systemd tmpfiles
+etn_configure_file(
+    resources/${PROJECT_NAME}.conf.in
+    TARGET      ${PROJECT_NAME}
+    DESTINATION "${CMAKE_INSTALL_PREFIX}/lib/tmpfiles.d/"
+)

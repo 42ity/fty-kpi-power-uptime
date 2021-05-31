@@ -19,89 +19,77 @@
     =========================================================================
 */
 
-/*
-@header
-    fty_kpi_power_uptime - Main daemon
-@discuss
-@end
-*/
+// fty_kpi_power_uptime - Main daemon
 
-#include "../include/fty_kpi_power_uptime_library.h"
+#include "fty_kpi_power_uptime_server.h"
+#include <fty_log.h>
 
 #define ACTOR_NAME "uptime"
 
-int main (int argc, char *argv [])
+int main(int argc, char* argv[])
 {
-    char *log_config = NULL;
-    bool verbose = false;
-    int argn;
+    char* log_config = nullptr;
+    bool  verbose    = false;
+    int   argn;
 
     for (argn = 1; argn < argc; argn++) {
-        if (streq (argv [argn], "--help")
-        ||  streq (argv [argn], "-h")) {
-            puts ("fty-kpi-power-uptime [options] ...");
-            puts ("  --verbose / -v         verbose output");
-            puts ("  --help / -h            this information");
-            puts ("  --config / -c          agent configuration file");
+        if (streq(argv[argn], "--help") || streq(argv[argn], "-h")) {
+            puts("fty-kpi-power-uptime [options] ...");
+            puts("  --verbose / -v         verbose output");
+            puts("  --help / -h            this information");
+            puts("  --config / -c          agent configuration file");
             return 0;
-        }
-        else
-        if (streq (argv [argn], "--verbose")
-        ||  streq (argv [argn], "-v"))
+        } else if (streq(argv[argn], "--verbose") || streq(argv[argn], "-v"))
             verbose = true;
-        else
-        if (streq (argv [argn], "--config")
-            ||  streq (argv [argn], "-c")) {
-            const char *zconf_path = argv[argn++];
+        else if (streq(argv[argn], "--config") || streq(argv[argn], "-c")) {
+            const char* zconf_path = argv[argn++];
 
-            zconfig_t *zconf = zconfig_load (zconf_path);
-            log_config = zconfig_get (zconf, "log/config", NULL);
-        }
-        else {
-            printf ("Unknown option: %s\n", argv [argn]);
+            zconfig_t* zconf = zconfig_load(zconf_path);
+            log_config       = zconfig_get(zconf, "log/config", nullptr);
+        } else {
+            printf("Unknown option: %s\n", argv[argn]);
         }
     }
 
     if (!log_config)
-        log_config = (char*)FTY_COMMON_LOGGING_DEFAULT_CFG ;
-    ftylog_setInstance (ACTOR_NAME, log_config);
-    Ftylog *log = ftylog_getInstance ();
+        log_config = const_cast<char*>(FTY_COMMON_LOGGING_DEFAULT_CFG);
+    ftylog_setInstance(ACTOR_NAME, log_config);
+    Ftylog* log = ftylog_getInstance();
 
     if (verbose == true) {
-        ftylog_setVeboseMode (log);
+        ftylog_setVeboseMode(log);
     }
 
-    log_info ("%s - Main daemon", ACTOR_NAME);
+    log_info("%s - Main daemon", ACTOR_NAME);
     static const char* endpoint = "ipc://@/malamute";
-    //XXX: this comes from old project name - uptime. Don't change if you're not
+    // XXX: this comes from old project name - uptime. Don't change if you're not
     //     willing to maintain code which moves things from old path :)
     static const char* dir = "/var/lib/fty/fty-kpi-power-uptime";
 
-    zactor_t *server = zactor_new (fty_kpi_power_uptime_server, (void*)ACTOR_NAME);
-    zstr_sendx (server, "CONFIG", dir, NULL);
-    zsock_wait (server);
-    zstr_sendx (server, "CONNECT", endpoint, NULL);
-    zsock_wait (server);
-//    zstr_sendx (server, "CONSUMER", "METRICS", "^status.ups@.*", NULL);
-//    zstr_sendx (server, "CONSUMER", "METRICS", "^status@.*", NULL);
-    zstr_sendx (server, "CONSUMER", "ASSETS", "^datacenter.unknown@.*", NULL);
-    zstr_sendx (server, "CONSUMER", "ASSETS", "^datacenter.N_A@.*", NULL);
-    zsock_wait (server);
+    zactor_t* server = zactor_new(fty_kpi_power_uptime_server, const_cast<char*>(ACTOR_NAME));
+    zstr_sendx(server, "CONFIG", dir, nullptr);
+    zsock_wait(server);
+    zstr_sendx(server, "CONNECT", endpoint, nullptr);
+    zsock_wait(server);
+    //    zstr_sendx (server, "CONSUMER", "METRICS", "^status.ups@.*", nullptr);
+    //    zstr_sendx (server, "CONSUMER", "METRICS", "^status@.*", nullptr);
+    zstr_sendx(server, "CONSUMER", "ASSETS", "^datacenter.unknown@.*", nullptr);
+    zstr_sendx(server, "CONSUMER", "ASSETS", "^datacenter.N_A@.*", nullptr);
+    zsock_wait(server);
 
     //  Accept and print any message back from server
     //  copy from src/malamute.c under MPL license
     while (true) {
-        char *message = zstr_recv (server);
+        char* message = zstr_recv(server);
         if (message) {
-            puts (message);
-            free (message);
-        }
-        else {
-            puts ("interrupted");
+            puts(message);
+            free(message);
+        } else {
+            puts("interrupted");
             break;
         }
     }
 
-    zactor_destroy (&server);
+    zactor_destroy(&server);
     return 0;
 }

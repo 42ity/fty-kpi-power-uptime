@@ -19,393 +19,277 @@
     =========================================================================
 */
 
-/*
-@header
-    dc - DC information
-@discuss
-@end
-*/
+#include "dc.h"
+#include <fty_log.h>
 
-#include "fty_kpi_power_uptime_classes.h"
-
-struct _dc_t {
-    int64_t last_update;
-    uint64_t total;
-    uint64_t offline;
-    zlistx_t *ups;  // list of offline upses
-};
-
-uint64_t
-dc_total (dc_t* self)
+uint64_t dc_total(dc_t* self)
 {
-    assert (self);
+    assert(self);
 
     return self->total;
 }
 
-uint64_t
-dc_off_line (dc_t* self)
+uint64_t dc_off_line(dc_t* self)
 {
-    assert (self);
+    assert(self);
 
     return self->offline;
 }
 
-void
-set_dc_total (dc_t* self, uint64_t total)
+void set_dc_total(dc_t* self, uint64_t total)
 {
-    assert (self);
+    assert(self);
 
     self->total = total;
 }
 
-void
-set_dc_off_line (dc_t* self, uint64_t offline)
+void set_dc_off_line(dc_t* self, uint64_t offline)
 {
-    assert (self);
+    assert(self);
 
     self->offline = offline;
 }
 
-static void
-s_str_destructor (void ** x)
+static void s_str_destructor(void** x)
 {
-    zstr_free ((char**) x);
+    zstr_free(reinterpret_cast<char**>(x));
 }
 
-static void*
-s_str_duplicator (const void * x)
+static void* s_str_duplicator(const void* x)
 {
-    return (void*) strdup ((char*) x);
+    return strdup(reinterpret_cast<const char*>(x));
 }
 
-static int
-s_str_comparator (const void *a, const void *b)
+static int s_str_comparator(const void* a, const void* b)
 {
-    return strcmp ((const char*) a, (const char*) b);
+    return strcmp(reinterpret_cast<const char*>(a), reinterpret_cast<const char*>(b));
 }
 
-dc_t*
-dc_new (void)
+dc_t* dc_new(void)
 {
-    dc_t *self = (dc_t*) zmalloc (sizeof (dc_t));
+    dc_t* self = reinterpret_cast<dc_t*>(zmalloc(sizeof(dc_t)));
     if (!self)
-        return NULL;
-    self->last_update = zclock_mono () / 1000LL;
-    self->total = 0LL;
-    self->offline = 0LL;
-    self->ups = zlistx_new ();
-    zlistx_set_duplicator (self->ups, s_str_duplicator);
-    zlistx_set_destructor (self->ups, s_str_destructor);
-    zlistx_set_comparator (self->ups, s_str_comparator);
+        return nullptr;
+    self->last_update = zclock_mono() / 1000LL;
+    self->total       = 0LL;
+    self->offline     = 0LL;
+    self->ups         = zlistx_new();
+    zlistx_set_duplicator(self->ups, s_str_duplicator);
+    zlistx_set_destructor(self->ups, s_str_destructor);
+    zlistx_set_comparator(self->ups, s_str_comparator);
     return self;
 }
 
-void
-dc_destroy (dc_t **self_p)
+void dc_destroy(dc_t** self_p)
 {
     if (!self_p || !*self_p)
         return;
 
-    dc_t *self = *self_p;
+    dc_t* self = *self_p;
 
-    zlistx_destroy (&self->ups);
-    free (self);
-    *self_p = NULL;
+    zlistx_destroy(&self->ups);
+    free(self);
+    *self_p = nullptr;
 }
 
-bool
-dc_is_offline (dc_t *self)
+bool dc_is_offline(dc_t* self)
 {
-    assert (self);
+    assert(self);
 
-    return zlistx_size (self->ups) > 0;
+    return zlistx_size(self->ups) > 0;
 }
 
-void
-dc_set_offline (dc_t *self, char* ups)
+void dc_set_offline(dc_t* self, char* ups)
 {
-    assert (self);
+    assert(self);
 
-    void *foo = zlistx_find (self->ups, ups);
-    if (!foo)
-    {
-        zlistx_add_end (self->ups, ups);
-        log_debug ("uptime: ups %s set offline", ups);
+    void* foo = zlistx_find(self->ups, ups);
+    if (!foo) {
+        zlistx_add_end(self->ups, ups);
+        log_debug("uptime: ups %s set offline", ups);
     }
 }
 
-void
-dc_set_online (dc_t *self, char* ups)
+void dc_set_online(dc_t* self, char* ups)
 {
-    assert (self);
+    assert(self);
 
-    void *foo = zlistx_find (self->ups, ups);
+    void* foo = zlistx_find(self->ups, ups);
     if (!foo)
         return;
-    zlistx_delete (self->ups, foo);
+    zlistx_delete(self->ups, foo);
 }
 
-void
-dc_uptime (dc_t *self, uint64_t* total, uint64_t* offline)
+void dc_uptime(dc_t* self, uint64_t* total, uint64_t* offline)
 {
-    assert (self);
+    assert(self);
 
-    int64_t now = (zclock_mono() / 1000LL);
+    int64_t now       = (zclock_mono() / 1000LL);
     int64_t time_diff = (now - self->last_update);
 
     // XXX: this should not happen due mono clock used, but we already got
     // weird total time, so newer add negative number typecasted to unsigned
     if (time_diff > 0LL) {
 
-        self->total += time_diff;
-        if (dc_is_offline (self))
-            self->offline += time_diff;
+        self->total += uint64_t(time_diff);
+        if (dc_is_offline(self))
+            self->offline += uint64_t(time_diff);
 
         self->last_update = now;
     }
 
-    *total = self->total;
+    *total   = self->total;
     *offline = self->offline;
 }
 
-zframe_t *
-dc_pack (dc_t *self)
+zframe_t* dc_pack(dc_t* self)
 {
 
-    assert (self);
+    assert(self);
 
-    zmsg_t *msg = zmsg_new ();
-    zmsg_addstr (msg, "dc0x01");
-    zmsg_addstrf (msg, "%" PRIi64, self->last_update);
-    zmsg_addstrf (msg, "%" PRIu64, self->total);
-    zmsg_addstrf (msg, "%" PRIu64, self->offline);
-    zmsg_addstrf (msg, "%zu", zlistx_size (self->ups));
+    zmsg_t* msg = zmsg_new();
+    zmsg_addstr(msg, "dc0x01");
+    zmsg_addstrf(msg, "%" PRIi64, self->last_update);
+    zmsg_addstrf(msg, "%" PRIu64, self->total);
+    zmsg_addstrf(msg, "%" PRIu64, self->offline);
+    zmsg_addstrf(msg, "%zu", zlistx_size(self->ups));
 
-    char *ups = (char*) zlistx_first (self->ups);
-    while (ups != NULL)
-    {
-        zmsg_addstr (msg, ups);
-        ups = (char*) zlistx_next (self->ups);
+    char* ups = reinterpret_cast<char*>(zlistx_first(self->ups));
+    while (ups != nullptr) {
+        zmsg_addstr(msg, ups);
+        ups = reinterpret_cast<char*>(zlistx_next(self->ups));
     }
 
-/* Note: the CZMQ_VERSION_MAJOR comparisons below actually assume versions
- * we know and care about - v3.0.2 (our legacy default, already obsoleted
- * by upstream), and v4.x that is in current upstream master. If the API
- * evolves later (incompatibly), these macros will need to be amended.
- */
-    size_t size = 0;    // Note: the zmsg_encode() and zframe_size()
-                        // below return a platform-dependent size_t,
-                        // and unlike some other similar code, here we
-                        // do not use fixed uint64_t due to protocol
-    zframe_t *frame = NULL;
+    /* Note: the CZMQ_VERSION_MAJOR comparisons below actually assume versions
+     * we know and care about - v3.0.2 (our legacy default, already obsoleted
+     * by upstream), and v4.x that is in current upstream master. If the API
+     * evolves later (incompatibly), these macros will need to be amended.
+     */
+    size_t size = 0; // Note: the zmsg_encode() and zframe_size()
+                     // below return a platform-dependent size_t,
+                     // and unlike some other similar code, here we
+                     // do not use fixed uint64_t due to protocol
+    zframe_t* frame = nullptr;
 #if CZMQ_VERSION_MAJOR == 3
-    byte *buffer;
-    size = zmsg_encode (msg, &buffer);
+    byte* buffer;
+    size = zmsg_encode(msg, &buffer);
 
     if (!buffer) {
-        zmsg_destroy (&msg);
-        return NULL;
+        zmsg_destroy(&msg);
+        return nullptr;
     }
 #else
-    frame = zmsg_encode (msg);
-    size = zframe_size (frame);
+    frame = zmsg_encode(msg);
+    size  = zframe_size(frame);
 #endif
 
     if (size == 0) {
-        zmsg_destroy (&msg);
-        return NULL;
+        zmsg_destroy(&msg);
+        return nullptr;
     }
 
 #if CZMQ_VERSION_MAJOR == 3
-    frame = zframe_new (buffer, size);
-    free (buffer);
+    frame = zframe_new(buffer, size);
+    free(buffer);
 #endif
-    zmsg_destroy (&msg);
+    zmsg_destroy(&msg);
 
     return frame;
 }
 
-dc_t *
-dc_unpack (zframe_t *frame)
+dc_t* dc_unpack(zframe_t* frame)
 {
-    assert (frame);
+    assert(frame);
 
-    zmsg_t *msg = NULL;
+    zmsg_t* msg = nullptr;
 #if CZMQ_VERSION_MAJOR == 3
-    msg = zmsg_decode (zframe_data (frame), zframe_size (frame));
+    msg = zmsg_decode(zframe_data(frame), zframe_size(frame));
 #else
-    msg = zmsg_decode (frame);
+    msg   = zmsg_decode(frame);
 #endif
 
     if (!msg)
-        return NULL;
+        return nullptr;
 
-    if (zmsg_size (msg) < 4) {
-        zmsg_destroy (&msg);
-        return NULL;
+    if (zmsg_size(msg) < 4) {
+        zmsg_destroy(&msg);
+        return nullptr;
     }
 
-    char *magic = zmsg_popstr (msg);
-    if (!magic || !streq (magic, "dc0x01")) {
-        log_error ("unknown magic %s", magic);
-        zmsg_destroy (&msg);
-        return NULL;
+    char* magic = zmsg_popstr(msg);
+    if (!magic || !streq(magic, "dc0x01")) {
+        log_error("unknown magic %s", magic);
+        zmsg_destroy(&msg);
+        return nullptr;
     }
 
-    zstr_free (&magic);
+    zstr_free(&magic);
 
-    int64_t last_update;
+    int64_t  last_update;
     uint64_t total, offline;
-    size_t size;
+    size_t   size;
 
-    char *s_last_update = zmsg_popstr (msg);
-    char *s_total = zmsg_popstr (msg);
-    char *s_offline = zmsg_popstr (msg);
-    char *s_size = zmsg_popstr (msg);
+    char* s_last_update = zmsg_popstr(msg);
+    char* s_total       = zmsg_popstr(msg);
+    char* s_offline     = zmsg_popstr(msg);
+    char* s_size        = zmsg_popstr(msg);
 
     if (!s_last_update || !s_total || !s_offline || !s_size) {
-        log_error ("missing last_update, total, offline or size fields");
-        zstr_free (&s_last_update);
-        zstr_free (&s_total);
-        zstr_free (&s_offline);
-        zstr_free (&s_size);
-        zmsg_destroy (&msg);
-        return NULL;
+        log_error("missing last_update, total, offline or size fields");
+        zstr_free(&s_last_update);
+        zstr_free(&s_total);
+        zstr_free(&s_offline);
+        zstr_free(&s_size);
+        zmsg_destroy(&msg);
+        return nullptr;
     }
 
-    sscanf (s_last_update, "%" SCNi64, &last_update);
-    sscanf (s_total, "%" SCNu64, &total);
-    sscanf (s_offline, "%" SCNu64, &offline);
-    sscanf (s_size, "%zu", &size);
+    sscanf(s_last_update, "%" SCNi64, &last_update);
+    sscanf(s_total, "%" SCNu64, &total);
+    sscanf(s_offline, "%" SCNu64, &offline);
+    sscanf(s_size, "%zu", &size);
 
-    zstr_free (&s_offline);
-    zstr_free (&s_total);
-    zstr_free (&s_last_update);
-    zstr_free (&s_size);
+    zstr_free(&s_offline);
+    zstr_free(&s_total);
+    zstr_free(&s_last_update);
+    zstr_free(&s_size);
 
-    dc_t *dc = dc_new ();
+    dc_t* dc = dc_new();
 
     if (!dc) {
-        zmsg_destroy (&msg);
-        return NULL;
+        zmsg_destroy(&msg);
+        return nullptr;
     }
 
     dc->last_update = last_update;
-    dc->total = total;
-    dc->offline = offline;
+    dc->total       = total;
+    dc->offline     = offline;
 
     if (size != 0) {
-        char *ups = zmsg_popstr (msg);
-        size_t i = 0;
+        char*  ups = zmsg_popstr(msg);
+        size_t i   = 0;
         while (ups && i != size) {
-            dc_set_offline (dc, ups);
-            zstr_free (&ups);
-            ups = zmsg_popstr (msg);
+            dc_set_offline(dc, ups);
+            zstr_free(&ups);
+            ups = zmsg_popstr(msg);
             i += 1;
         }
-        zstr_free (&ups);
+        zstr_free(&ups);
     }
 
-    zmsg_destroy (&msg);
+    zmsg_destroy(&msg);
     return dc;
 }
 
-void
-dc_print (dc_t *self) {
-    log_debug ("last_update: %" PRIi64"\n", self->last_update);
-    log_debug ("total: %" PRIu64"\n", self->total);
-    log_debug ("offline: %" PRIu64"\n", self->offline);
-    log_debug ("ups (%zu):\n", zlistx_size (self->ups));
-
-    for (char* i = (char*) zlistx_first (self->ups);
-               i != NULL;
-               i = (char*) zlistx_next (self->ups))
-    {
-        log_debug ("    %s\n", i);
-    }
-}
-
-//  --------------------------------------------------------------------------
-//  Self test of this class.
-
-void
-dc_test (bool verbose)
+void dc_print(dc_t* self)
 {
-    printf (" * dc: ");
+    log_debug("last_update: %" PRIi64 "\n", self->last_update);
+    log_debug("total: %" PRIu64 "\n", self->total);
+    log_debug("offline: %" PRIu64 "\n", self->offline);
+    log_debug("ups (%zu):\n", zlistx_size(self->ups));
 
-    //  @selftest
-    dc_t *dc = dc_new ();
-
-    assert (!dc_is_offline (dc));
-
-    dc_set_online (dc, (char*)"UPS007");
-    assert (!dc_is_offline (dc));
-
-    dc_set_offline (dc, (char*)"UPS001");
-    assert (dc_is_offline (dc));
-
-    uint64_t total, offline;
-
-    zclock_sleep (3000);
-    dc_uptime (dc, &total, &offline);
-    printf ("total:  %" PRIi64, total);
-    printf ("offline:  %" PRIi64, offline);
-
-    assert (total > 1);
-    assert (offline > 1);
-
-    dc_set_online (dc, (char*)"UPS001");
-    assert (!dc_is_offline (dc));
-
-    zclock_sleep (3000);
-    dc_uptime (dc, &total, &offline);
-    assert (total > 2);
-    assert (offline > 1);
-
-    dc_destroy (&dc);
-
-    // pack/unpack
-    dc = dc_new ();
-    // XXX: dirty tricks for test - class intentionally don't allow to test those directly
-    dc->last_update = 42;
-    dc->total = 1042;
-    dc->offline = 17;
-    dc_set_offline (dc, (char*)"UPS001");
-    dc_set_offline (dc, (char*)"UPS002");
-    dc_set_offline (dc, (char*)"UPS003");
-
-    zframe_t *frame = dc_pack (dc);
-    assert (frame);
-
-    dc_t *dc2 = dc_unpack (frame);
-    assert (dc2);
-    assert (dc->last_update == dc2->last_update);
-    assert (dc->total == dc2->total);
-    assert (dc->offline == dc2->offline);
-    assert (dc_is_offline (dc2));
-    assert (zlistx_size (dc2->ups) == 3);
-    assert (streq ((char*) zlistx_first (dc2->ups), "UPS001"));
-    assert (streq ((char*) zlistx_next (dc2->ups), "UPS002"));
-    assert (streq ((char*) zlistx_next (dc2->ups), "UPS003"));
-
-    zframe_destroy (&frame);
-    dc_destroy (&dc2);
-    dc_destroy (&dc);
-
-    // pack/unpack of empty struct
-    dc = dc_new ();
-    frame = dc_pack (dc);
-    assert (frame);
-
-    dc2 = dc_unpack (frame);
-    assert (dc2);
-    assert (zlistx_size (dc2->ups) == 0);
-    zframe_destroy (&frame);
-    dc_destroy (&dc2);
-    dc_destroy (&dc);
-
-    //  @end
-
-    printf ("OK\n");
+    for (char* i = reinterpret_cast<char*>(zlistx_first(self->ups)); i != nullptr;
+         i       = reinterpret_cast<char*>(zlistx_next(self->ups))) {
+        log_debug("    %s\n", i);
+    }
 }

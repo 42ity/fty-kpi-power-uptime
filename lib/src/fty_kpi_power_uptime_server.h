@@ -19,14 +19,19 @@
     =========================================================================
 */
 
-#ifndef FTY_KPI_POWER_UPTIME_SERVER_H_INCLUDED
-#define FTY_KPI_POWER_UPTIME_SERVER_H_INCLUDED
+#pragma once
+#include "upt.h"
+#include <czmq.h>
+#include <fty_proto.h>
 
-#ifdef __cplusplus
-extern "C" {
-#endif
+struct fty_kpi_power_uptime_server_t
+{
+    int    request_counter;
+    upt_t* upt;
+    char*  dir;
+    char*  name;
+};
 
-//  @interface
 //  Create new fty-kpi-power-uptime instance.
 //
 //      zactor_t *server = zactor_new (fty_kpi_power_uptime_server, "uptime");
@@ -48,15 +53,11 @@ extern "C" {
 //      zsock_sendx (server, "CONFIG", "src/", NULL);
 //      zsock_wait (server);
 //
-void fty_kpi_power_uptime_server (zsock_t *pipe, void *args);
+void fty_kpi_power_uptime_server(zsock_t* pipe, void* args);
 
-//  Self test of this class
-void fty_kpi_power_uptime_server_test (bool verbose);
-
-//  @end
-
-#ifdef __cplusplus
-}
-#endif
-
-#endif
+fty_kpi_power_uptime_server_t* fty_kpi_power_uptime_server_new(void);
+int                            fty_kpi_power_uptime_server_save_state(fty_kpi_power_uptime_server_t* self);
+int                            fty_kpi_power_uptime_server_load_state(fty_kpi_power_uptime_server_t* self);
+void                           fty_kpi_power_uptime_server_destroy(fty_kpi_power_uptime_server_t** self_p);
+void                           s_set_dc_upses(fty_kpi_power_uptime_server_t* self, fty_proto_t* fmsg);
+void fty_kpi_power_uptime_server_set_dir(fty_kpi_power_uptime_server_t* self, const char* dir);

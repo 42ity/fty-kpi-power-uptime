@@ -15,12 +15,3 @@
 */
 #define CATCH_CONFIG_MAIN // This tells Catch to provide a main() - only do this in one cpp file
 #include <catch2/catch.hpp>
-
-#include "../src/fty_kpi_power_uptime_classes.h"
-#include <filesystem>
-
-TEST_CASE("All the stuff of before")
-{
-    std::cout << "Current path is " << std::filesystem::current_path() << std::endl;
-    fty_kpi_power_uptime_private_selftest(true, "$ALL");
-}

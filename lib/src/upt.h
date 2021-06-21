@@ -19,61 +19,47 @@
     =========================================================================
 */
 
-#ifndef UPT_H_INCLUDED
-#define UPT_H_INCLUDED
+#pragma once
 
 /*
 //#include <zhash.h>
-#include <czmq.h>
-#include <zhashx.h>
 #include <malamute.h>
+#include <zhashx.h>
 */
 
-#ifdef __cplusplus
-extern "C" {
-#endif
+#include <czmq.h>
 
-#ifndef UPT_T_DEFINED
-typedef struct _upt_t upt_t;
-#define UPT_T_DEFINED
-#endif
+struct upt_t
+{
+    zhashx_t* ups2dc; // map ups name to dc name
+    zhashx_t* dc;     // map dc name to dc_t struct
+};
 
-//  @interface
-//  Create a new upt
-upt_t *upt_new (void);
+///  Create a new upt
+upt_t* upt_new(void);
 
-//  Destroy the upt
-void upt_destroy (upt_t **self_p);
+///  Destroy the upt
+void upt_destroy(upt_t** self_p);
 
-//  Print properties of object
-void upt_print (upt_t *self);
+///  Print properties of object
+void upt_print(upt_t* self);
 
-int upt_add (upt_t *self, const char *dc_name, zlistx_t *ups_p);
+int upt_add(upt_t* self, const char* dc_name, zlistx_t* ups_p);
 
-bool upt_is_offline (upt_t *self, const char* dc_name);
+bool upt_is_offline(upt_t* self, const char* dc_name);
 
-void upt_set_offline (upt_t *self, const char* dc_name);
+void upt_set_offline(upt_t* self, const char* dc_name);
 
-void upt_set_online (upt_t *self, const char* dc_name);
+void upt_set_online(upt_t* self, const char* dc_name);
 
-const char*upt_dc_name (upt_t *self, const char* ups_name);
+const char* upt_dc_name(upt_t* self, const char* ups_name);
 
-int upt_uptime (upt_t *self, const char* ups_name, uint64_t *total, uint64_t *offline);
+int upt_uptime(upt_t* self, const char* ups_name, uint64_t* total, uint64_t* offline);
 
-//save upt_t to file
-int upt_save (upt_t *self, const char *file_path);
+/// save upt_t to file
+int upt_save(upt_t* self, const char* file_path);
 
-void upt_print (upt_t* self);
+void upt_print(upt_t* self);
 
-// load upt_t from file
-upt_t*upt_load (const char *file_path);
-
-//  Self test of this class
-void upt_test (bool verbose);
-//  @end
-
-#ifdef __cplusplus
-}
-#endif
-
-#endif
+/// load upt_t from file
+upt_t* upt_load(const char* file_path);

@@ -159,38 +159,43 @@ void s_set_dc_upses(fty_kpi_power_uptime_server_t* self, fty_proto_t* fmsg)
 
 static void s_handle_uptime(fty_kpi_power_uptime_server_t* server, mlm_client_t* client, zmsg_t* msg)
 {
-    int   r;
-    char* dc_name = zmsg_popstr(msg);
-    if (!dc_name) {
-        log_error("no DC name in message, ignoring");
+    const char* sender = mlm_client_sender(client);
+    char* dc_name = NULL;
 
-        mlm_client_sendtox(client, mlm_client_sender(client), "UPTIME", "UPTIME", "ERROR",
-            "Invalid request: missing DC name", nullptr);
-    }
-    log_debug("%s:\tdc_name: '%s'", server->name, dc_name);
+    do { // for break facilities
+        dc_name = zmsg_popstr(msg);
+        if (!dc_name) {
+            log_error("no DC name in message, ignoring");
+            mlm_client_sendtox(client, sender, "UPTIME", "UPTIME", "ERROR",
+                "Invalid request: missing DC name", nullptr);
+            break;
+        }
 
-    uint64_t total, offline;
-    r = upt_uptime(server->upt, dc_name, &total, &offline);
+        log_debug("%s:\tdc_name: '%s'", server->name, dc_name);
 
-    log_debug("%s:\tr: %d, total: %" PRIu64 ", offline: %" PRIu64 "\n", server->name, r, total, offline);
+        uint64_t total = 0, offline = 0;
+        int r = upt_uptime(server->upt, dc_name, &total, &offline);
 
-    if (r == -1) {
-        log_error("Can't compute uptime, most likely unknown DC: %s", dc_name);
-        mlm_client_sendtox(client, mlm_client_sender(client), "UPTIME", "UPTIME", "ERROR",
-            "Invalid request: DC name is not known", nullptr);
-    }
+        log_debug("%s:\tr: %d, total: %" PRIu64 ", offline: %" PRIu64 "\n", server->name, r, total, offline);
 
-    char *s_total, *s_offline;
-    r = asprintf(&s_total, "%" PRIu64, total);
-    assert(r > 0);
-    r = asprintf(&s_offline, "%" PRIu64, offline);
-    assert(r > 0);
+        if (r != 0) {
+            log_error("Can't compute uptime, most likely unknown DC: %s", dc_name);
+            mlm_client_sendtox(client, sender, "UPTIME", "UPTIME", "ERROR",
+                "Invalid request: DC name is not known", nullptr);
+            break;
+        }
 
-    mlm_client_sendtox(client, mlm_client_sender(client), "UPTIME", "UPTIME", s_total, s_offline, nullptr);
+        char s_total[32];
+        char s_offline[32];
+        snprintf(s_total, sizeof(s_total), "%" PRIu64, total);
+        snprintf(s_offline, sizeof(s_offline), "%" PRIu64, offline);
+
+        mlm_client_sendtox(client, sender, "UPTIME", "UPTIME",
+            s_total, s_offline, nullptr);
+        break;
+    } while(0);
 
     zstr_free(&dc_name);
-    zstr_free(&s_total);
-    zstr_free(&s_offline);
 }
 
 static bool s_ups_is_onbattery(fty_proto_t* msg)

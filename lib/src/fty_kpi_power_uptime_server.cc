@@ -274,7 +274,6 @@ void fty_kpi_power_metric_pull(zsock_t* pipe, void* args)
 //  Server as an actor
 void fty_kpi_power_uptime_server(zsock_t* pipe, void* args)
 {
-    int                            ret;
     char*                          name   = reinterpret_cast<char*>(args);
     mlm_client_t*                  client = mlm_client_new();
     fty_kpi_power_uptime_server_t* server = fty_kpi_power_uptime_server_new();
@@ -285,8 +284,10 @@ void fty_kpi_power_uptime_server(zsock_t* pipe, void* args)
     zpoller_t* poller = zpoller_new(pipe, mlm_client_msgpipe(client), nullptr);
     zsock_signal(pipe, 0);
     zactor_t* kpi_power_metric_pull = zactor_new(fty_kpi_power_metric_pull, server);
+
     while (!zsys_interrupted) {
         void* which = zpoller_wait(poller, -1);
+
         if (which == pipe) {
             zmsg_t* msg = zmsg_recv(pipe);
             char*   cmd = zmsg_popstr(msg);
@@ -302,15 +303,17 @@ void fty_kpi_power_uptime_server(zsock_t* pipe, void* args)
             if (streq(cmd, "$TERM")) {
                 zstr_free(&cmd);
                 zmsg_destroy(&msg);
-                goto exit;
-            } else if (streq(cmd, "CONNECT")) {
+                break;
+            }
+            else if (streq(cmd, "CONNECT")) {
                 char* endpoint = zmsg_popstr(msg);
                 int   rv       = mlm_client_connect(client, endpoint, 1000, name);
                 if (rv == -1)
                     log_error("%s: can't connect to malamute endpoint '%s'", name, endpoint);
                 zstr_free(&endpoint);
                 zsock_signal(pipe, 0);
-            } else if (streq(cmd, "CONSUMER")) {
+            }
+            else if (streq(cmd, "CONSUMER")) {
                 char* stream  = zmsg_popstr(msg);
                 char* pattern = zmsg_popstr(msg);
                 int   rv      = mlm_client_set_consumer(client, stream, pattern);
@@ -319,7 +322,8 @@ void fty_kpi_power_uptime_server(zsock_t* pipe, void* args)
                 zstr_free(&stream);
                 zstr_free(&pattern);
                 zsock_signal(pipe, 0);
-            } else if (streq(cmd, "CONFIG")) {
+            }
+            else if (streq(cmd, "CONFIG")) {
                 char* dir = zmsg_popstr(msg);
                 if (!dir)
                     log_error("%s: CONFIG: directory is null", name);
@@ -340,17 +344,15 @@ void fty_kpi_power_uptime_server(zsock_t* pipe, void* args)
 
         log_debug("%s: handling the protocol", name);
         zmsg_t* msg = mlm_client_recv(client);
-        if (!msg)
+        if (!msg) {
             continue;
-
+        }
 
         log_debug("%s:\tcommand=%s", name, mlm_client_command(client));
         log_debug("%s:\tsender=%s", name, mlm_client_sender(client));
         log_debug("%s:\tsubject=%s", name, mlm_client_subject(client));
 
-
         if ((server->request_counter++) % 100 == 0) {
-
             log_debug("%s: saving the state", name);
             fty_kpi_power_uptime_server_save_state(server);
         }
@@ -367,7 +369,8 @@ void fty_kpi_power_uptime_server(zsock_t* pipe, void* args)
                 mlm_client_sendtox(client, mlm_client_sender(client), "UPTIME", "ERROR", "Unknown command", nullptr);
             }
             zstr_free(&command);
-        } else if (streq(mlm_client_command(client), "STREAM DELIVER")) {
+        }
+        else if (streq(mlm_client_command(client), "STREAM DELIVER")) {
             fty_proto_t* bmsg = fty_proto_decode(&msg);
             if (!bmsg) {
                 log_warning("Not fty proto, skipping");
@@ -376,8 +379,9 @@ void fty_kpi_power_uptime_server(zsock_t* pipe, void* args)
             } else if (fty_proto_id(bmsg) == FTY_PROTO_ASSET) {
                 if (streq(fty_proto_aux_string(bmsg, "type", "null"), "datacenter")) {
                     s_set_dc_upses(server, bmsg);
-                } else
+                } else {
                     log_debug("%s: invalid asset type: %s", server->name, fty_proto_aux_string(bmsg, "type", "null"));
+                }
             } else {
                 log_warning("%s: recieved invalid message", server->name);
             }
@@ -386,10 +390,11 @@ void fty_kpi_power_uptime_server(zsock_t* pipe, void* args)
 
         zmsg_destroy(&msg);
     }
-exit:
-    ret = fty_kpi_power_uptime_server_save_state(server);
-    if (ret != 0)
+
+    int ret = fty_kpi_power_uptime_server_save_state(server);
+    if (ret != 0) {
         log_error("failed to save state to %s", server->dir);
+    }
     zactor_destroy(&kpi_power_metric_pull);
     zpoller_destroy(&poller);
     mlm_client_destroy(&client);

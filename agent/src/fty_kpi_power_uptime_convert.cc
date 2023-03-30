@@ -72,17 +72,12 @@ static void s_load_binary(FILE* file, zhashx_t** ups2dc_p, zhashx_t* dc)
     char* s_size = zmsg_popstr(msg);
     assert(s_size);
 
-    size_t size;
+    size_t size = 0;
     sscanf(s_size, "%zu", &size);
     zstr_free(&s_size);
 
-    if (size == 0)
-        return;
-
-    size_t i = 0;
-    char*  key;
-    do {
-        key = zmsg_popstr(msg);
+    for (size_t i = 0; i < size; i++) {
+        char* key = zmsg_popstr(msg);
         if (!key)
             break;
         frame = zmsg_pop(msg);
@@ -96,14 +91,15 @@ static void s_load_binary(FILE* file, zhashx_t** ups2dc_p, zhashx_t* dc)
             zstr_free(&key);
             break;
         }
-        zhashx_insert(dc, key, dc_item);
+        if (zhashx_insert(dc, key, dc_item) != 0) {
+            // key exist, insert failed
+            dc_destroy(&dc_item);
+        }
         zframe_destroy(&frame);
         zstr_free(&key);
-        i++;
-    } while (i != size);
+    }
 
     zmsg_destroy(&msg);
-    return;
 }
 
 static void s_save_zpl(zhashx_t* ups2dc, zhashx_t* dc, const char* file_path)
@@ -151,8 +147,8 @@ static void s_save_zpl(zhashx_t* ups2dc, zhashx_t* dc, const char* file_path)
 int main(int argc, char* argv[])
 {
     bool verbose = false;
-    int  argn;
-    for (argn = 1; argn < argc; argn++) {
+
+    for (int argn = 1; argn < argc; argn++) {
         if (streq(argv[argn], "--help") || streq(argv[argn], "-h")) {
             puts("fty-kpi-power-uptime-convert [options] [file_name] [old_path] [new_path]");
             puts("Converts bios_proto state file to fty_proto state file.");
@@ -162,7 +158,11 @@ int main(int argc, char* argv[])
         } else if (streq(argv[argn], "--verbose") || streq(argv[argn], "-v"))
             verbose = true;
     }
-    char *file_name = nullptr, *old_path = nullptr, *new_path = nullptr;
+
+    const char* file_name = nullptr;
+    const char* old_path = nullptr;
+    const char* new_path = nullptr;
+
     if (verbose) {
         file_name = argv[2];
         old_path  = argv[3];

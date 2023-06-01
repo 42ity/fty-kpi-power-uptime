@@ -20,7 +20,7 @@
 Source:         fty-kpi-power-uptime
 Section:        net
 Priority:       optional
-Maintainer:     fty-kpi-power-uptime Developers <eatonipcopensource@eaton.com>
+Maintainer:     fty-kpi-power-uptime Developers <opensource@eaton.com>
 Standards-Version: 4.0.1.0
 Build-Depends: debhelper (>= 9),
     cmake (>=3.0),

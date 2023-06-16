@@ -57,7 +57,7 @@ int main(int argc, char* argv[])
     Ftylog* log = ftylog_getInstance();
 
     if (verbose == true) {
-        ftylog_setVeboseMode(log);
+        ftylog_setVerboseMode(log);
     }
 
     log_info("%s - Main daemon", ACTOR_NAME);

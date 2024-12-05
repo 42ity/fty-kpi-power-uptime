@@ -1,0 +1,28 @@
+name: Call Trigger Jenkins multibranch workflow
+
+on:
+    push:
+      branches:
+        - 'release/**'
+        - 'featureimage/**'
+    pull_request:
+      branches:
+        - 'release/**'
+        - 'featureimage/**'
+    workflow_dispatch:
+
+jobs:
+    call-trigger-jenkins-workflow:
+        permissions:
+            contents: read
+            pull-requests: read
+        uses: etn-electrical/bldc-ipm2-ci/.github/workflows/reusable-jenkins-trigger.yml@featureimage/ghe-polling
+        with:    
+            project-name: ${{ github.event.repository.name }}
+            branch-name: ${{ github.event_name == 'pull_request' && github.head_ref || github.ref_name }}
+            project-organization: ${{ github.repository_owner }}
+            user-name: ${{ github.event.pusher.name || github.event.pull_request.user.login }}
+            commitID: ${{ github.sha }}
+            jobStartTime: $(date +%s)
+            prID : ${{ github.event_name == 'pull_request' && 'github.event.pull_request.number' || '' }}
+            prBase : ${{ github.event_name == 'pull_request' && 'github.event.pull_request.base.ref' || '' }}

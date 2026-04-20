@@ -13,10 +13,10 @@ etn_target(static ${PROJECT_NAME}-lib
         src/upt.h
     USES
         czmq
+        mlm
         fty_common_logging
         fty_proto
         fty_shm
-        mlm
     PRIVATE
 )
 

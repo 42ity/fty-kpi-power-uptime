@@ -24,6 +24,9 @@
 #include "fty_kpi_power_uptime_server.h"
 #include <fty_log.h>
 
+#define ACTOR_NAME "fty-kpi-power-uptime" // mlm server address
+#define MLM_ENDPOINT "ipc://@/malamute"
+
 static void usage(const char* pname)
 {
     printf("%s [options] ...\n", (pname ? pname : "fty-kpi-power-uptime"));
@@ -34,7 +37,6 @@ static void usage(const char* pname)
 
 int main(int argc, char* argv[])
 {
-    const char* ACTOR_NAME = "fty-kpi-power-uptime";
     bool verbose = false;
 
     for (int argn = 1; argn < argc; argn++) {
@@ -43,13 +45,13 @@ int main(int argc, char* argv[])
 
         if (streq(arg, "-c") || streq(arg, "--config")) {
             if (!param) {
-                fprintf(stderr, "missing parameter (option: %s)\n", arg);
+                fprintf(stderr, "Missing parameter (option: %s)\n", arg);
                 return EXIT_FAILURE;
             }
 
             zconfig_t* zconf = zconfig_load(param);
             if (!zconf) {
-                fprintf(stderr, "zconfig_load failed (param: %s)\n", param);
+                fprintf(stderr, "Config load failed (param: %s)\n", param);
                 return EXIT_FAILURE;
             }
             verbose = streq(zconfig_get(zconf, "server/verbose", "0"), "1");
@@ -76,6 +78,7 @@ int main(int argc, char* argv[])
 
     log_info("%s - starting", ACTOR_NAME);
 
+    // instanciate main actor
     zactor_t* actor = zactor_new(fty_kpi_power_uptime_server, const_cast<char*>(ACTOR_NAME));
     if (!actor) {
         log_error("actor creation failed");
@@ -84,14 +87,14 @@ int main(int argc, char* argv[])
 
     // XXX: this comes from old project name - uptime. Don't change if you're not
     //     willing to maintain code which moves things from old path :)
-    zstr_sendx(actor, "CONFIG", "/var/lib/fty/fty-kpi-power-uptime", nullptr);
+    zstr_sendx(actor, "CONFIG", "/var/lib/fty/fty-kpi-power-uptime", NULL);
     zsock_wait(actor);
 
-    zstr_sendx(actor, "CONNECT", "ipc://@/malamute", nullptr);
+    zstr_sendx(actor, "CONNECT", MLM_ENDPOINT, NULL);
     zsock_wait(actor);
 
-    zstr_sendx(actor, "CONSUMER", "ASSETS", "^datacenter.unknown@.*", nullptr);
-    zstr_sendx(actor, "CONSUMER", "ASSETS", "^datacenter.N_A@.*", nullptr);
+    zstr_sendx(actor, "CONSUMER", "ASSETS", "^datacenter.unknown@.*", NULL);
+    zstr_sendx(actor, "CONSUMER", "ASSETS", "^datacenter.N_A@.*", NULL);
     zsock_wait(actor);
 
     log_info("%s - started", ACTOR_NAME);

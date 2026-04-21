@@ -21,12 +21,6 @@
 
 #pragma once
 
-/*
-//#include <zhash.h>
-#include <malamute.h>
-#include <zhashx.h>
-*/
-
 #include <czmq.h>
 
 struct upt_t
@@ -36,13 +30,10 @@ struct upt_t
 };
 
 ///  Create a new upt
-upt_t* upt_new(void);
+upt_t* upt_new();
 
 ///  Destroy the upt
 void upt_destroy(upt_t** self_p);
-
-///  Print properties of object
-void upt_print(upt_t* self);
 
 int upt_add(upt_t* self, const char* dc_name, zlistx_t* ups_p);
 
@@ -59,7 +50,8 @@ int upt_uptime(upt_t* self, const char* ups_name, uint64_t* total, uint64_t* off
 /// save upt_t to file
 int upt_save(upt_t* self, const char* file_path);
 
-void upt_print(upt_t* self);
-
 /// load upt_t from file
 upt_t* upt_load(const char* file_path);
+
+///  Print properties of object
+void upt_print(upt_t* self);

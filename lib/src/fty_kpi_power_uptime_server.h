@@ -20,16 +20,17 @@
 */
 
 #pragma once
+
 #include "upt.h"
 #include <czmq.h>
 #include <fty_proto.h>
 
 struct fty_kpi_power_uptime_server_t
 {
-    int    request_counter;
+    char* name; // mlm address
     upt_t* upt;
-    char*  dir;
-    char*  name;
+    char* dir;
+    int save_counter;
 };
 
 //  Create new fty-kpi-power-uptime instance.
@@ -55,7 +56,7 @@ struct fty_kpi_power_uptime_server_t
 //
 void fty_kpi_power_uptime_server(zsock_t* pipe, void* args);
 
-fty_kpi_power_uptime_server_t* fty_kpi_power_uptime_server_new(void);
+fty_kpi_power_uptime_server_t* fty_kpi_power_uptime_server_new(const char* name);
 int                            fty_kpi_power_uptime_server_save_state(fty_kpi_power_uptime_server_t* self);
 int                            fty_kpi_power_uptime_server_load_state(fty_kpi_power_uptime_server_t* self);
 void                           fty_kpi_power_uptime_server_destroy(fty_kpi_power_uptime_server_t** self_p);

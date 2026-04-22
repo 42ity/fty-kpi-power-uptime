@@ -20,6 +20,7 @@
 */
 
 #pragma once
+
 #include <czmq.h>
 
 struct dc_t
@@ -31,7 +32,7 @@ struct dc_t
 };
 
 ///  Create a new dc
-dc_t *dc_new (void);
+dc_t *dc_new ();
 
 ///  Destroy the dc
 void dc_destroy (dc_t **self_p);

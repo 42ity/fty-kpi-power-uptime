@@ -24,40 +24,32 @@
 
 uint64_t dc_total(dc_t* self)
 {
-    assert(self);
-
-    return self->total;
+    return self ? self->total : 0;
 }
 
 uint64_t dc_off_line(dc_t* self)
 {
-    assert(self);
-
-    return self->offline;
+    return self ? self->offline : 0;
 }
 
 void set_dc_total(dc_t* self, uint64_t total)
 {
-    assert(self);
-
-    self->total = total;
+    if (self) self->total = total;
 }
 
 void set_dc_off_line(dc_t* self, uint64_t offline)
 {
-    assert(self);
-
-    self->offline = offline;
+    if (self) self->offline = offline;
 }
 
 static void s_str_destructor(void** x)
 {
-    zstr_free(reinterpret_cast<char**>(x));
+    if (x) zstr_free(reinterpret_cast<char**>(x));
 }
 
 static void* s_str_duplicator(const void* x)
 {
-    return strdup(reinterpret_cast<const char*>(x));
+    return x ? strdup(reinterpret_cast<const char*>(x)) : NULL;
 }
 
 static int s_str_comparator(const void* a, const void* b)
@@ -65,46 +57,49 @@ static int s_str_comparator(const void* a, const void* b)
     return strcmp(reinterpret_cast<const char*>(a), reinterpret_cast<const char*>(b));
 }
 
-dc_t* dc_new(void)
+dc_t* dc_new()
 {
-    dc_t* self = reinterpret_cast<dc_t*>(zmalloc(sizeof(dc_t)));
-    if (!self)
-        return nullptr;
-    self->last_update = zclock_mono() / 1000LL;
-    self->total       = 0LL;
-    self->offline     = 0LL;
-    self->ups         = zlistx_new();
-    zlistx_set_duplicator(self->ups, s_str_duplicator);
-    zlistx_set_destructor(self->ups, s_str_destructor);
-    zlistx_set_comparator(self->ups, s_str_comparator);
+    dc_t* self = reinterpret_cast<dc_t*>(zmalloc(sizeof(*self)));
+    if (self) {
+        self->last_update = zclock_mono() / 1000;
+        self->total       = 0;
+        self->offline     = 0;
+        self->ups         = zlistx_new();
+
+        if (!self->ups) {
+            dc_destroy(&self);
+            return NULL;
+        }
+
+        zlistx_set_duplicator(self->ups, s_str_duplicator);
+        zlistx_set_destructor(self->ups, s_str_destructor);
+        zlistx_set_comparator(self->ups, s_str_comparator);
+    }
     return self;
 }
 
 void dc_destroy(dc_t** self_p)
 {
-    if (!self_p || !*self_p)
-        return;
-
-    dc_t* self = *self_p;
-
-    zlistx_destroy(&self->ups);
-    free(self);
-    *self_p = nullptr;
+    if (self_p && (*self_p)) {
+        dc_t* self = *self_p;
+        zlistx_destroy(&self->ups);
+        free(self);
+        *self_p = nullptr;
+    }
 }
 
 bool dc_is_offline(dc_t* self)
 {
-    assert(self);
-
-    return zlistx_size(self->ups) > 0;
+    return self ? (zlistx_size(self->ups) > 0) : true;
 }
 
 void dc_set_offline(dc_t* self, char* ups)
 {
-    assert(self);
+    if (!self) return;
+    if (!ups) return;
 
-    void* foo = zlistx_find(self->ups, ups);
-    if (!foo) {
+    void* it = zlistx_find(self->ups, ups);
+    if (!it) {
         zlistx_add_end(self->ups, ups);
         log_debug("uptime: ups %s set offline", ups);
     }
@@ -112,25 +107,25 @@ void dc_set_offline(dc_t* self, char* ups)
 
 void dc_set_online(dc_t* self, char* ups)
 {
-    assert(self);
+    if (!self) return;
+    if (!ups) return;
 
-    void* foo = zlistx_find(self->ups, ups);
-    if (!foo)
-        return;
-    zlistx_delete(self->ups, foo);
+    void* it = zlistx_find(self->ups, ups);
+    if (it) {
+        zlistx_delete(self->ups, it);
+    }
 }
 
 void dc_uptime(dc_t* self, uint64_t* total, uint64_t* offline)
 {
-    assert(self);
+    if (!self) return;
 
-    int64_t now       = (zclock_mono() / 1000LL);
+    int64_t now       = (zclock_mono() / 1000);
     int64_t time_diff = (now - self->last_update);
 
     // XXX: this should not happen due mono clock used, but we already got
     // weird total time, so newer add negative number typecasted to unsigned
-    if (time_diff > 0LL) {
-
+    if (time_diff > 0) {
         self->total += uint64_t(time_diff);
         if (dc_is_offline(self))
             self->offline += uint64_t(time_diff);
@@ -144,20 +139,18 @@ void dc_uptime(dc_t* self, uint64_t* total, uint64_t* offline)
 
 zframe_t* dc_pack(dc_t* self)
 {
-
-    assert(self);
+    if (!self) return nullptr;
 
     zmsg_t* msg = zmsg_new();
-    zmsg_addstr(msg, "dc0x01");
+    zmsg_addstr(msg, "dc0x01"); //magic
     zmsg_addstrf(msg, "%" PRIi64, self->last_update);
     zmsg_addstrf(msg, "%" PRIu64, self->total);
     zmsg_addstrf(msg, "%" PRIu64, self->offline);
     zmsg_addstrf(msg, "%zu", zlistx_size(self->ups));
 
-    char* ups = reinterpret_cast<char*>(zlistx_first(self->ups));
-    while (ups != nullptr) {
+    for (void* it = zlistx_first(self->ups); it; it = zlistx_next(self->ups)) {
+        char* ups = reinterpret_cast<char*>(it);
         zmsg_addstr(msg, ups);
-        ups = reinterpret_cast<char*>(zlistx_next(self->ups));
     }
 
     /* Note: the CZMQ_VERSION_MAJOR comparisons below actually assume versions
@@ -185,6 +178,7 @@ zframe_t* dc_pack(dc_t* self)
 
     if (size == 0) {
         zmsg_destroy(&msg);
+        zframe_destroy(&frame);
         return nullptr;
     }
 
@@ -199,13 +193,12 @@ zframe_t* dc_pack(dc_t* self)
 
 dc_t* dc_unpack(zframe_t* frame)
 {
-    assert(frame);
+    if (!frame) return nullptr;
 
-    zmsg_t* msg = nullptr;
 #if CZMQ_VERSION_MAJOR == 3
-    msg = zmsg_decode(zframe_data(frame), zframe_size(frame));
+    zmsg_t* msg = zmsg_decode(zframe_data(frame), zframe_size(frame));
 #else
-    msg   = zmsg_decode(frame);
+    zmsg_t* msg = zmsg_decode(frame);
 #endif
 
     if (!msg)
@@ -222,12 +215,7 @@ dc_t* dc_unpack(zframe_t* frame)
         zmsg_destroy(&msg);
         return nullptr;
     }
-
     zstr_free(&magic);
-
-    int64_t  last_update;
-    uint64_t total, offline;
-    size_t   size;
 
     char* s_last_update = zmsg_popstr(msg);
     char* s_total       = zmsg_popstr(msg);
@@ -236,26 +224,29 @@ dc_t* dc_unpack(zframe_t* frame)
 
     if (!s_last_update || !s_total || !s_offline || !s_size) {
         log_error("missing last_update, total, offline or size fields");
-        zstr_free(&s_last_update);
-        zstr_free(&s_total);
-        zstr_free(&s_offline);
         zstr_free(&s_size);
+        zstr_free(&s_offline);
+        zstr_free(&s_total);
+        zstr_free(&s_last_update);
         zmsg_destroy(&msg);
         return nullptr;
     }
+
+    int64_t  last_update = 0;
+    uint64_t total = 0, offline = 0;
+    size_t   size = 0;
 
     sscanf(s_last_update, "%" SCNi64, &last_update);
     sscanf(s_total, "%" SCNu64, &total);
     sscanf(s_offline, "%" SCNu64, &offline);
     sscanf(s_size, "%zu", &size);
 
+    zstr_free(&s_size);
     zstr_free(&s_offline);
     zstr_free(&s_total);
     zstr_free(&s_last_update);
-    zstr_free(&s_size);
 
     dc_t* dc = dc_new();
-
     if (!dc) {
         zmsg_destroy(&msg);
         return nullptr;
@@ -266,13 +257,13 @@ dc_t* dc_unpack(zframe_t* frame)
     dc->offline     = offline;
 
     if (size != 0) {
-        char*  ups = zmsg_popstr(msg);
-        size_t i   = 0;
-        while (ups && i != size) {
+        char* ups = zmsg_popstr(msg);
+        size_t i = 0;
+        while (ups && (i != size)) {
             dc_set_offline(dc, ups);
             zstr_free(&ups);
             ups = zmsg_popstr(msg);
-            i += 1;
+            i++;
         }
         zstr_free(&ups);
     }
@@ -283,13 +274,17 @@ dc_t* dc_unpack(zframe_t* frame)
 
 void dc_print(dc_t* self)
 {
+    if (!self) { log_debug("dc_print: self is NULL"); return; }
+
+    log_debug("dc_print: self: <%p>\n", self);
+
     log_debug("last_update: %" PRIi64 "\n", self->last_update);
     log_debug("total: %" PRIu64 "\n", self->total);
     log_debug("offline: %" PRIu64 "\n", self->offline);
-    log_debug("ups (%zu):\n", zlistx_size(self->ups));
+    log_debug("ups (size=%zu):\n", zlistx_size(self->ups));
 
-    for (char* i = reinterpret_cast<char*>(zlistx_first(self->ups)); i != nullptr;
-         i       = reinterpret_cast<char*>(zlistx_next(self->ups))) {
-        log_debug("    %s\n", i);
+    for (void* it = zlistx_first(self->ups); it; it = zlistx_next(self->ups)) {
+        char* ups_name = reinterpret_cast<char*>(it);
+        log_debug("    %s\n", ups_name);
     }
 }

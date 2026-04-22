@@ -45,7 +45,7 @@ fty-kpi-power-uptime has 1 actor:
 
 * fty-kpi-power-uptime-server: main actor
 
-(Malamute address is "uptime" for backward compatibility reasons).
+(Malamute address is "fty-kpi-power-uptime").
 
 After every 100 requests, agent stores its state into the state file.
 
@@ -68,14 +68,14 @@ Agent fty-kpi-power-uptime can be requested for:
 #### Uptime info
 
 The USER peer sends the following message using MAILBOX SEND to
-FTY-KPI-POWER-UPTIME-SERVER ("uptime") peer:
+FTY-KPI-POWER-UPTIME-SERVER ("fty-kpi-power-uptime") peer:
 
 * UPTIME/dc - request uptime info for datacenter 'dc'
 
 where
 * '/' indicates a multipart string message
 * 'dc' MUST be name of a datacenter
-* subject of the message MUST be "UPTIME".
+* any subject accepted.
 
 The FTY-KPI-POWER-UPTIME-SERVER peer MUST respond with one of the messages back to USER
 peer using MAILBOX SEND.
@@ -88,13 +88,13 @@ where
 * 'total' is how long the datacenter exists (in milliseconds)
 * 'offline' is how many milliseconds at least one of its UPSes was offline
 * 'reason' is string detailing reason for error
-* subject of the message MUST be "UPTIME".
+* subject of the message same as for the request.
 
 ### Stream subscriptions
 
-Agent is subscribed to METRICS (for UPS status metrics) and ASSETS streams (for datacenter messages).
+Agent is subscribed to ASSETS stream (for datacenter messages).
 
-If agent recieves a metric, agent checks whether the UPS is protecting some datacenter.
+If agent regularly check UPS metrics, to know the UPS is protecting some datacenter.
 
 If it does, the agent stores its status and updates total and offline time for its datacenter.
 

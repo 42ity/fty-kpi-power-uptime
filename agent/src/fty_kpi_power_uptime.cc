@@ -24,72 +24,96 @@
 #include "fty_kpi_power_uptime_server.h"
 #include <fty_log.h>
 
-#define ACTOR_NAME "uptime"
+#define ACTOR_NAME "fty-kpi-power-uptime" // mlm server address
+#define MLM_ENDPOINT "ipc://@/malamute"
+
+static void usage(const char* pname)
+{
+    printf("%s [options] ...\n", (pname ? pname : "fty-kpi-power-uptime"));
+    printf("  -c/--config     load agent configuration file\n");
+    printf("  -v/--verbose    set output to verbose\n");
+    printf("  -h/--help       show this information\n");
+}
 
 int main(int argc, char* argv[])
 {
-    char* log_config = nullptr;
-    bool  verbose    = false;
-    int   argn;
+    bool verbose = false;
 
-    for (argn = 1; argn < argc; argn++) {
-        if (streq(argv[argn], "--help") || streq(argv[argn], "-h")) {
-            puts("fty-kpi-power-uptime [options] ...");
-            puts("  --verbose / -v         verbose output");
-            puts("  --help / -h            this information");
-            puts("  --config / -c          agent configuration file");
-            return 0;
-        } else if (streq(argv[argn], "--verbose") || streq(argv[argn], "-v"))
+    for (int argn = 1; argn < argc; argn++) {
+        const char* arg = argv[argn];
+        const char* param = ((argn + 1) < argc) ? argv[argn + 1] : NULL;
+
+        if (streq(arg, "-c") || streq(arg, "--config")) {
+            if (!param) {
+                fprintf(stderr, "Missing parameter (option: %s)\n", arg);
+                return EXIT_FAILURE;
+            }
+
+            zconfig_t* zconf = zconfig_load(param);
+            if (!zconf) {
+                fprintf(stderr, "Config load failed (param: %s)\n", param);
+                return EXIT_FAILURE;
+            }
+            verbose = streq(zconfig_get(zconf, "server/verbose", "0"), "1");
+            zconfig_destroy(&zconf);
+        }
+        else if (streq(arg, "-v") || streq(arg, "--verbose")) {
             verbose = true;
-        else if (streq(argv[argn], "--config") || streq(argv[argn], "-c")) {
-            const char* zconf_path = argv[argn++];
-
-            zconfig_t* zconf = zconfig_load(zconf_path);
-            log_config       = zconfig_get(zconf, "log/config", nullptr);
-        } else {
-            printf("Unknown option: %s\n", argv[argn]);
+        }
+        else if (streq(arg, "-h") || streq(arg, "--help")) {
+            usage(argv[0]);
+            return EXIT_SUCCESS;
+        }
+        else {
+            fprintf(stderr, "Unknown option: %s\n", arg);
+            return EXIT_FAILURE;
         }
     }
 
-    if (!log_config)
-        log_config = const_cast<char*>(FTY_COMMON_LOGGING_DEFAULT_CFG);
-    ftylog_setInstance(ACTOR_NAME, log_config);
-    Ftylog* log = ftylog_getInstance();
-
-    if (verbose == true) {
-        ftylog_setVerboseMode(log);
+    // init logging
+    ftylog_setInstance(ACTOR_NAME, FTY_COMMON_LOGGING_DEFAULT_CFG);
+    if (verbose) {
+        ftylog_setVerboseMode(ftylog_getInstance());
     }
 
-    log_info("%s - Main daemon", ACTOR_NAME);
-    static const char* endpoint = "ipc://@/malamute";
+    log_info("%s - starting", ACTOR_NAME);
+
+    // instanciate main actor
+    zactor_t* actor = zactor_new(fty_kpi_power_uptime_server, const_cast<char*>(ACTOR_NAME));
+    if (!actor) {
+        log_error("actor creation failed");
+        return EXIT_FAILURE;
+    }
+
     // XXX: this comes from old project name - uptime. Don't change if you're not
     //     willing to maintain code which moves things from old path :)
-    static const char* dir = "/var/lib/fty/fty-kpi-power-uptime";
+    zstr_sendx(actor, "CONFIG", "/var/lib/fty/fty-kpi-power-uptime", NULL);
+    zsock_wait(actor);
 
-    zactor_t* server = zactor_new(fty_kpi_power_uptime_server, const_cast<char*>(ACTOR_NAME));
-    zstr_sendx(server, "CONFIG", dir, nullptr);
-    zsock_wait(server);
-    zstr_sendx(server, "CONNECT", endpoint, nullptr);
-    zsock_wait(server);
-    //    zstr_sendx (server, "CONSUMER", "METRICS", "^status.ups@.*", nullptr);
-    //    zstr_sendx (server, "CONSUMER", "METRICS", "^status@.*", nullptr);
-    zstr_sendx(server, "CONSUMER", "ASSETS", "^datacenter.unknown@.*", nullptr);
-    zstr_sendx(server, "CONSUMER", "ASSETS", "^datacenter.N_A@.*", nullptr);
-    zsock_wait(server);
+    zstr_sendx(actor, "CONNECT", MLM_ENDPOINT, NULL);
+    zsock_wait(actor);
 
-    //  Accept and print any message back from server
-    //  copy from src/malamute.c under MPL license
-    while (true) {
-        char* message = zstr_recv(server);
-        if (message) {
-            puts(message);
-            free(message);
-        } else {
-            puts("interrupted");
+    zstr_sendx(actor, "CONSUMER", "ASSETS", "^datacenter.unknown@.*", NULL);
+    zstr_sendx(actor, "CONSUMER", "ASSETS", "^datacenter.N_A@.*", NULL);
+    zsock_wait(actor);
+
+    log_info("%s - started", ACTOR_NAME);
+
+    // Main loop, accept any message back from server
+    // copy from src/malamute.c under MPL license
+    while (!zsys_interrupted) {
+        char* msg = zstr_recv(actor);
+        if (!msg)
             break;
-        }
+        log_trace("%s: recv msg '%s'", ACTOR_NAME, msg);
+        zstr_free(&msg);
     }
 
-    zactor_destroy(&server);
-    return 0;
+    log_info("%s - ending", ACTOR_NAME);
+
+    zactor_destroy(&actor);
+
+    log_info("%s - ended", ACTOR_NAME);
+
+    return EXIT_SUCCESS;
 }
